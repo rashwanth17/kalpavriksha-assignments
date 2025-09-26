@@ -1,8 +1,33 @@
 #include <stdio.h>
 #include<ctype.h>
+#include<stdlib.h>
 #define MAX 1000
 int stack[MAX];
 int top=-1;
+char op[MAX];
+int ot=-1;
+
+int precedence(char ch)
+{
+    if(ch=='+' || ch=='-') return 1;
+    if(ch=='*' || ch=='/') return 2;
+    return 0;
+}
+
+int operation(int x,int y,char ch)
+{
+    if(ch=='+') return x+y;
+    else if(ch=='-') return x-y;
+    else if(ch=='*') return x*y;
+    else{
+        if(y==0)
+        {
+            printf("cannot divide by 0");
+            exit(1);
+        }
+        return x/y;
+    }
+}
 int main()
 {
     char exp[100];
@@ -11,26 +36,57 @@ int main()
     for(int i=0;exp[i]!='\0';i++)
     {
         if(isspace(exp[i])) continue;
-        int num=0;
-        int j=i;
-        while(isdigit(exp[j]))
+        if(isdigit(exp[i]))
         {
-            num=num*10+(exp[j]-'0');
-            j++;
-        }
-        if(j!=i) i=j-1;
 
-        if(num!=0 && top!=MAX-1)
+            int num=0;
+            // int j=i;
+            while(isdigit(exp[i]))
+            {
+                num=num*10+(exp[i]-'0');
+                i++;
+            }
+            // if(j!=i) i=j-1;
+            i--;
+            
+            if(num!=0 && top!=MAX-1)
+            {
+                top++;
+                stack[top]=num;
+            }
+        }
+        else if(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/')
         {
-            top++;
-            stack[top]=num;
+            while(ot!=-1 && precedence(op[ot])>=precedence(exp[i]))
+            {
+                char c=op[ot--];
+                int x=stack[top--];
+                int y=stack[top--];
+                int ans=operation(y,x,c);
+                stack[++top]=ans;
+            }
+            op[++ot]=exp[i];
+        }
+        else
+        {
+            printf("invalid expression");
+            return 1;
         }
         // printf("%c",exp[i]);
     }
-
-    for(int i=0;i<=top;i++)
+    while(top!=-1)
     {
-        printf("%d ",stack[i]);
+        char c=op[ot--];
+        int x=stack[top--];
+        int y=stack[top--];
+        int ans=operation(y,x,c);
+        stack[++top]=ans;
     }
+
+    // for(int i=0;i<=top;i++)
+    // {
+    //     printf("%d ",stack[i]);
+    // }
+    printf("%d",stack[0]);
     return 0;
 }
