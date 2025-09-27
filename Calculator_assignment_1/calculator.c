@@ -7,12 +7,7 @@ int top=-1;
 char op[MAX];
 int ot=-1;
 
-int precedence(char ch)
-{
-    if(ch=='+' || ch=='-') return 1;
-    if(ch=='*' || ch=='/') return 2;
-    return 0;
-}
+
 
 int operation(int x,int y,char ch)
 {
@@ -28,6 +23,24 @@ int operation(int x,int y,char ch)
         return x/y;
     }
 }
+
+int precedence(char ch)
+{
+    if(ch=='+' || ch=='-') return 1;
+    if(ch=='*' || ch=='/') return 2;
+    return 0;
+}
+
+void process()
+{
+    char c=op[ot--];
+    int x=stack[top--];
+    int y=stack[top--];
+    int ans=operation(y,x,c);
+    stack[++top]=ans;
+
+}
+
 int main()
 {
     char exp[100];
@@ -49,7 +62,7 @@ int main()
             // if(j!=i) i=j-1;
             i--;
             
-            if(num!=0 && top!=MAX-1)
+            if(top!=MAX-1)
             {
                 top++;
                 stack[top]=num;
@@ -59,11 +72,7 @@ int main()
         {
             while(ot!=-1 && precedence(op[ot])>=precedence(exp[i]))
             {
-                char c=op[ot--];
-                int x=stack[top--];
-                int y=stack[top--];
-                int ans=operation(y,x,c);
-                stack[++top]=ans;
+                process();
             }
             op[++ot]=exp[i];
         }
@@ -74,13 +83,14 @@ int main()
         }
         // printf("%c",exp[i]);
     }
-    while(top!=-1)
+    while(ot!=-1)
     {
-        char c=op[ot--];
-        int x=stack[top--];
-        int y=stack[top--];
-        int ans=operation(y,x,c);
-        stack[++top]=ans;
+        // char c=op[ot--];
+        // int x=stack[top--];
+        // int y=stack[top--];
+        // int ans=operation(y,x,c);
+        // stack[++top]=ans;
+        process();
     }
 
     // for(int i=0;i<=top;i++)
