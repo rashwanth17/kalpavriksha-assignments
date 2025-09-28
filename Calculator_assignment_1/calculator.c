@@ -54,13 +54,26 @@ int main()
             printf("invalid expression");
             return 1;
         }
-        if(isdigit(exp[i]))
+        if(isdigit(exp[i]) || (exp[i]=='-' && (i==0 || isspace(exp[i-1])) || (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/')))
         {
+
+            int neg=1;
+            if(exp[i]=='-')
+            {
+                neg=-1;
+                i++;
+            }
+            else if (exp[i]=='+')
+            {
+                i++;
+            }
+            
 
             int num=0;
             // int j=i;
             while(isdigit(exp[i]))
             {
+                
                 num=num*10+(exp[i]-'0');
                 i++;
             }
@@ -70,7 +83,7 @@ int main()
             if(top!=MAX-1)
             {
                 top++;
-                stack[top]=num;
+                stack[top]=neg*num;
             }
         }
         else if(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/')
