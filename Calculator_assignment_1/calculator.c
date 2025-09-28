@@ -7,8 +7,6 @@ int top=-1;
 char op[MAX];
 int ot=-1;
 
-
-
 int operation(int x,int y,char ch)
 {
     if(ch=='+') return x+y;
@@ -68,16 +66,13 @@ int main()
                 i++;
             }
             
-
             int num=0;
-            // int j=i;
             while(isdigit(exp[i]))
             {
                 
                 num=num*10+(exp[i]-'0');
                 i++;
             }
-            // if(j!=i) i=j-1;
             i--;
             
             if(top!=MAX-1)
@@ -99,22 +94,11 @@ int main()
             printf("invalid expression");
             return 1;
         }
-        // printf("%c",exp[i]);
     }
     while(ot!=-1)
     {
-        // char c=op[ot--];
-        // int x=stack[top--];
-        // int y=stack[top--];
-        // int ans=operation(y,x,c);
-        // stack[++top]=ans;
         process();
     }
-
-    // for(int i=0;i<=top;i++)
-    // {
-    //     printf("%d ",stack[i]);
-    // }
     printf("%d",stack[0]);
     return 0;
 }
