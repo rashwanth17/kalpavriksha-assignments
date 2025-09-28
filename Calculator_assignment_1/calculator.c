@@ -49,6 +49,11 @@ int main()
     for(int i=0;exp[i]!='\0';i++)
     {
         if(isspace(exp[i])) continue;
+        if(i!=0 && (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/')&&(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/'))
+        {
+            printf("invalid expression");
+            return 1;
+        }
         if(isdigit(exp[i]))
         {
 
