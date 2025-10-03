@@ -2,13 +2,14 @@
 #include<stdlib.h>
 #include<string.h>
 
+//structure for the user deatails
 typedef struct{
     int id;
     char name[50];
     int age;
 }user;
 
-
+//to find the next ID
 int ID()
 {
     FILE *file=fopen("users.txt","r");
@@ -25,6 +26,7 @@ int ID()
     return max+1;
 }
 
+//creates a new user
 void createUser()
 {
     user u;
@@ -47,6 +49,7 @@ void createUser()
     fclose(file);
 }
 
+//displays all the users from file
 void displayUser()
 {
     FILE *file=fopen("users.txt","r");
@@ -71,6 +74,7 @@ void displayUser()
     fclose(file);
 }
 
+//updates the userdetails
 void updateUser()
 {
     int id;
@@ -128,7 +132,7 @@ void updateUser()
     printf("User details updated\n");
 }
 
-
+//deletes the user
 void deleteUser()
 {
     int id;
