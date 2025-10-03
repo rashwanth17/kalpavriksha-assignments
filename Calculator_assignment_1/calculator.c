@@ -7,7 +7,7 @@ int top=-1;
 char op[MAX];
 int ot=-1;
 
-int operation(int x,int y,char ch)
+int operation(int x,int y,char ch) //performs arithmetic operations
 {
     if(ch=='+') return x+y;
     else if(ch=='-') return x-y;
@@ -22,14 +22,14 @@ int operation(int x,int y,char ch)
     }
 }
 
-int precedence(char ch)
+int precedence(char ch) //precedence logic
 {
     if(ch=='+' || ch=='-') return 1;
     if(ch=='*' || ch=='/') return 2;
     return 0;
 }
 
-void process()
+void process() //handles the stacks
 {
     char c=op[ot--];
     int x=stack[top--];
@@ -46,15 +46,14 @@ int main()
     fgets(exp,sizeof(exp),stdin);
     for(int i=0;exp[i]!='\0';i++)
     {
-        if(isspace(exp[i])) continue;
-        if(i!=0 && (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/')&&(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/'))
+        if(isspace(exp[i])) continue; //checks for empty spaces and skips them
+        if(i!=0 && (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/')&&(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/')) //checks whether 2 opeartors in expression comes together
         {
             printf("invalid expression");
             return 1;
         }
-        if(isdigit(exp[i]) || (exp[i]=='-' && (i==0 || isspace(exp[i-1])) || (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/')))
+        if(isdigit(exp[i]) || (exp[i]=='-' && (i==0 || isspace(exp[i-1])) || (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/'))) //handles expression if number starts with - symbol
         {
-
             int neg=1;
             if(exp[i]=='-')
             {
@@ -69,11 +68,9 @@ int main()
             int num=0;
             while(isdigit(exp[i]))
             {
-                
                 num=num*10+(exp[i]-'0');
                 i++;
             }
-            
             i--;
             
             if(top!=MAX-1)
