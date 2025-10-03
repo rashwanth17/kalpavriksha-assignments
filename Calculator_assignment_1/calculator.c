@@ -73,6 +73,7 @@ int main()
                 num=num*10+(exp[i]-'0');
                 i++;
             }
+            
             i--;
             
             if(top!=MAX-1)
