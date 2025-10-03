@@ -85,7 +85,7 @@ int main()
             {
                 process();
             }
-            op[++ot]=exp[i];
+            op[++ot]=exp[i]; 
         }
         else
         {
