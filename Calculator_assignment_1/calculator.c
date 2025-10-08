@@ -18,7 +18,8 @@ int performOperation(int operand1,int operand2,char operator) //performs arithme
         case '-': return operand1 - operand2;
         case '*': return operand1 * operand2;
         case '/':
-            if (operand2 == 0) {
+            if (operand2 == 0)
+            {
                 printf("Error: Division by zero is not allowed.\n");
                 exit(1);
             }
