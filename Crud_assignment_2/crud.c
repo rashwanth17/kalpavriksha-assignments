@@ -1,75 +1,77 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#define USER_FILE "users.txt"
+#define TEMP_FILE "temp.txt"
 
 //structure for the user deatails
 typedef struct{
     int id;
     char name[50];
     int age;
-}user;
+}User;
 
 //to find the next ID
 int ID()
 {
-    FILE *file=fopen("users.txt","r");
+    FILE *file=fopen(USER_FILE,"r");
     if(!file) return 1;
-    int max=0;
-    int curr;
+    int maxID=0;
+    int currentId;
     int age;
     char name[50];
-    while(fscanf(file,"%d,%49[^,],%d\n",&curr,name,&age)==3)
+    while(fscanf(file,"%d,%49[^,],%d\n",&currentId,name,&age)==3)
     {
-        if(curr>max) max=curr;
+        if(currentId>maxID) maxID=currentId;
     }
     fclose(file);
-    return max+1;
+    return maxID+1;
 }
 
 //creates a new user
 void createUser()
 {
-    user u;
-    u.id=ID();
+    User user;
+    user.id=ID();
     printf("Enter your name: \n");
     getchar();
-    fgets(u.name,sizeof(u.name),stdin);
-    u.name[strcspn(u.name,"\n")]=0;
+    fgets(user.name,sizeof(user.name),stdin);
+    user.name[strcspn(user.name,"\n")]=0;
     printf("Enter your age: \n");
-    scanf("%d",&u.age);
+    scanf("%d",&user.age);
     while(getchar()!='\n');
-    FILE *file=fopen("users.txt","a");
+    FILE *file=fopen(USER_FILE,"a");
     if(!file)
     {
-        printf("cannot open file");
+        printf("Error: Could not open file\n");
         return;
     }
-    fprintf(file,"%d,%s,%d\n",u.id,u.name,u.age);
-    printf("User created with ID %d \n",u.id);
+    fprintf(file,"%d,%s,%d\n",user.id,user.name,user.age);
+    printf("User created with ID %d \n",user.id);
     fclose(file);
 }
 
 //displays all the users from file
 void displayUser()
 {
-    FILE *file=fopen("users.txt","r");
+    FILE *file=fopen(USER_FILE,"r");
     if(!file)
     {
-        printf("user not found");
+        printf("User not found");
         return;
     }
     char s[100];
     printf("ID Name Age \n");
     while(fgets(s,sizeof(s),file))
     {
-        user u;
-        char *sp=strtok(s,",");
-        u.id=atoi(sp);
-        sp=strtok(NULL,",");
-        strcpy(u.name,sp);
-        sp=strtok(NULL,",");
-        u.age=atoi(sp);
-        printf("%d %s %d\n",u.id,u.name,u.age);
+        User user;
+        char *token=strtok(s,",");
+        user.id=atoi(token);
+        token=strtok(NULL,",");
+        strcpy(user.name,token);
+        token=strtok(NULL,",");
+        user.age=atoi(token);
+        printf("%d %s %d\n",user.id,user.name,user.age);
     }
     fclose(file);
 }
@@ -81,54 +83,62 @@ void updateUser()
     printf("Enter the ID of the user you want to update: \n");
     scanf("%d",&id);
     while(getchar()!='\n');
-    FILE *file=fopen("users.txt","r");
+    FILE *file=fopen(USER_FILE,"r");
     if(!file)
     {
-        printf("cannot open file");
+        printf("Error: Could not open file\n");
         return;
     }
-    FILE *f2=fopen("temp.txt","w");
-    if(!f2)
+    FILE *temp=fopen(TEMP_FILE,"w");
+    if(!temp)
     {
-        printf("cannot open file");
+        printf("Error: Could not open file\n");
         return;
     }
 
     char s[100];
-    int x=0;
+    int found=0;
     while(fgets(s,sizeof(s),file))
     {
-        user u;
-        char *sp=strtok(s,",");
-        u.id=atoi(sp);
-        sp=strtok(NULL,",");
-        strcpy(u.name,sp);
-        sp=strtok(NULL,",");
-        u.age=atoi(sp);
+        User user;
+        char *token=strtok(s,",");
+        user.id=atoi(token);
+        token=strtok(NULL,",");
+        strcpy(user.name,token);
+        token=strtok(NULL,",");
+        user.age=atoi(token);
 
-        if(u.id==id)
+        if(user.id==id)
         {
-            x=1;
+            found=1;
             printf("Enter the new name: \n");
-            fgets(u.name,sizeof(u.name),stdin);
-            u.name[strcspn(u.name,"\n")]=0;
+            fgets(user.name,sizeof(user.name),stdin);
+            user.name[strcspn(user.name,"\n")]=0;
             printf("Enter new age: \n");
-            scanf("%d",&u.age);
+            scanf("%d",&user.age);
             while(getchar()!='\n');
         }
-        fprintf(f2,"%d,%s,%d\n",u.id,u.name,u.age);
+        fprintf(temp,"%d,%s,%d\n",user.id,user.name,user.age);
     }
 
     fclose(file);
-    fclose(f2);
-    if(x==0)
+    fclose(temp);
+    if(found==0)
     {
-        printf("user not found");
+        printf("User not found");
         return;
     }
 
-    remove("users.txt");
-    rename("temp.txt","users.txt");
+    if(remove(USER_FILE)!=0)
+    {
+        printf("Error deleting original file");
+        return;
+    }
+    if(rename(TEMP_FILE,USER_FILE))
+    {
+        printf("Error renaming temporary file");
+        return;
+    }
     printf("User details updated\n");
 }
 
@@ -139,49 +149,57 @@ void deleteUser()
     printf("Enter ID to delete the user: \n");
     scanf("%d",&id);
     while(getchar()!='\n');
-    FILE *file=fopen("users.txt","r");
+    FILE *file=fopen(USER_FILE,"r");
     if(!file)
     {
-        printf("cannot open file");
+        printf("Error: Could not open file\n");
         return;
     }
-    FILE *f2=fopen("temp.txt","w");
-    if(!f2)
+    FILE *temp=fopen(TEMP_FILE,"w");
+    if(!temp)
     {
-        printf("cannot open file");
+        printf("Error: Could not open file\n");
         return;
     }
 
     char s[100];
-    int x=0;
+    int found=0;
     while(fgets(s,sizeof(s),file))
     {
-        user u;
-        char *sp=strtok(s,",");
-        u.id=atoi(sp);
-        sp=strtok(NULL,",");
-        strcpy(u.name,sp);
-        sp=strtok(NULL,",");
-        u.age=atoi(sp);
+        User user;
+        char *token=strtok(s,",");
+        user.id=atoi(token);
+        token=strtok(NULL,",");
+        strcpy(user.name,token);
+        token=strtok(NULL,",");
+        user.age=atoi(token);
 
-        if(u.id==id)
+        if(user.id==id)
         {
-            x=1;
+            found=1;
             continue;
         }
-        fprintf(f2,"%d,%s,%d\n",u.id,u.name,u.age);
+        fprintf(temp,"%d,%s,%d\n",user.id,user.name,user.age);
     }
 
     fclose(file);
-    fclose(f2);
-    if(x==0)
+    fclose(temp);
+    if(found==0)
     {
-        printf("user not found");
+        printf("User not found");
         return;
     }
 
-    remove("users.txt");
-    rename("temp.txt","users.txt");
+    if(remove(USER_FILE)!=0)
+    {
+        printf("Error deleting original file");
+        return;
+    }
+    if(rename(TEMP_FILE,USER_FILE))
+    {
+        printf("Error renaming temporary file");
+        return;
+    }
     printf("User deleted\n");
 }
 int main()
@@ -194,9 +212,14 @@ int main()
         printf("4. Delete User\n");
         printf("5. EXIT\n");
         printf("Enter the choice: ");
-        int c;
-        scanf("%d",&c);
-        switch(c)
+        int choice;
+        if(scanf("%d",&choice)!=1)
+        {
+            printf("Inavlid input, please enter a number betwen 1-5\n");
+            while(getchar()!='\n');
+            continue;
+        };
+        switch(choice)
         {
             case 1:
             createUser();
@@ -219,7 +242,7 @@ int main()
             exit(0);
 
             default:
-            printf("please select relevant choice");
+            printf("Please select relevant choice between 1-5\n");
         }
     }
 }
