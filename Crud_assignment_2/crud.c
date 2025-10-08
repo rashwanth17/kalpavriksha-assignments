@@ -6,13 +6,13 @@
 
 //structure for the user deatails
 typedef struct{
-    int id;
+    int user_id;
     char name[50];
     int age;
 }User;
 
 //to find the next ID
-int ID()
+int getNextUserId()
 {
 
     FILE *file=fopen(USER_FILE,"r");
@@ -22,19 +22,19 @@ int ID()
         return 1;
     }
 
-    int maxID=0;
-    int currentId;
-    int age;
-    char name[50];
+    int maxUserId=0;
+    int currentUserId;
+    int tempAge;
+    char tempName[50];
 
-    while(fscanf(file,"%d,%49[^,],%d\n",&currentId,name,&age)==3)
+    while(fscanf(file,"%d,%49[^,],%d\n",&currentUserId,tempName,&tempAge)==3)
     {
-        if(currentId>maxID) maxID=currentId;
+        if(currentUserId>maxUserId) maxUserId=currentUserId;
     }
 
     fclose(file);
 
-    return maxID+1;
+    return maxUserId+1;
 }
 
 //creates a new user
@@ -42,7 +42,7 @@ void createUser()
 {
 
     User user;
-    user.id=ID();
+    user.user_id=getNextUserId();
 
     printf("Enter your name: \n");
     getchar();
@@ -60,8 +60,8 @@ void createUser()
         return;
     }
 
-    fprintf(file,"%d,%s,%d\n",user.id,user.name,user.age);
-    printf("User created with ID %d \n",user.id);
+    fprintf(file,"%d,%s,%d\n",user.user_id,user.name,user.age);
+    printf("User created with ID %d \n",user.user_id);
 
     fclose(file);
 }
@@ -77,19 +77,19 @@ void displayUser()
         return;
     }
 
-    char s[100];
+    char line[100];
     printf("ID Name Age \n");
 
-    while(fgets(s,sizeof(s),file))
+    while(fgets(line,sizeof(line),file))
     {
         User user;
-        char *token=strtok(s,",");
-        user.id=atoi(token);
+        char *token=strtok(line,",");
+        user.user_id=atoi(token);
         token=strtok(NULL,",");
         strcpy(user.name,token);
         token=strtok(NULL,",");
         user.age=atoi(token);
-        printf("%d %s %d\n",user.id,user.name,user.age);
+        printf("%d %s %d\n",user.user_id,user.name,user.age);
     }
 
     fclose(file);
@@ -99,9 +99,9 @@ void displayUser()
 void updateUser()
 {
 
-    int id;
+    int user_id;
     printf("Enter the ID of the user you want to update: \n");
-    scanf("%d",&id);
+    scanf("%d",&user_id);
 
     while(getchar()!='\n');
     FILE *file=fopen(USER_FILE,"r");
@@ -112,29 +112,29 @@ void updateUser()
         return;
     }
 
-    FILE *temp=fopen(TEMP_FILE,"w");
-    if(!temp)
+    FILE *tempFile=fopen(TEMP_FILE,"w");
+    if(!tempFile)
     {
         printf("Error: Could not open file\n");
         return;
     }
 
-    char s[100];
-    int found=0;
+    char line[100];
+    int isUserFound=0;
 
-    while(fgets(s,sizeof(s),file))
+    while(fgets(line,sizeof(line),file))
     {
         User user;
-        char *token=strtok(s,",");
-        user.id=atoi(token);
+        char *token=strtok(line,",");
+        user.user_id=atoi(token);
         token=strtok(NULL,",");
         strcpy(user.name,token);
         token=strtok(NULL,",");
         user.age=atoi(token);
 
-        if(user.id==id)
+        if(user.user_id==user_id)
         {
-            found=1;
+            isUserFound=1;
             printf("Enter the new name: \n");
             fgets(user.name,sizeof(user.name),stdin);
             user.name[strcspn(user.name,"\n")]=0;
@@ -143,13 +143,13 @@ void updateUser()
             while(getchar()!='\n');
         }
 
-        fprintf(temp,"%d,%s,%d\n",user.id,user.name,user.age);
+        fprintf(tempFile,"%d,%s,%d\n",user.user_id,user.name,user.age);
     }
 
     fclose(file);
-    fclose(temp);
+    fclose(tempFile);
 
-    if(found==0)
+    if(isUserFound==0)
     {
         printf("User not found");
         return;
@@ -174,10 +174,10 @@ void updateUser()
 void deleteUser()
 {
 
-    int id;
+    int user_id;
 
     printf("Enter ID to delete the user: \n");
-    scanf("%d",&id);
+    scanf("%d",&user_id);
     while(getchar()!='\n');
 
     FILE *file=fopen(USER_FILE,"r");
@@ -188,40 +188,40 @@ void deleteUser()
         return;
     }
 
-    FILE *temp=fopen(TEMP_FILE,"w");
+    FILE *tempFile=fopen(TEMP_FILE,"w");
 
-    if(!temp)
+    if(!tempFile)
     {
         printf("Error: Could not open file\n");
         return;
     }
 
-    char s[100];
-    int found=0;
+    char line[100];
+    int isUserFound=0;
 
-    while(fgets(s,sizeof(s),file))
+    while(fgets(line,sizeof(line),file))
     {
         User user;
-        char *token=strtok(s,",");
-        user.id=atoi(token);
+        char *token=strtok(line,",");
+        user.user_id=atoi(token);
         token=strtok(NULL,",");
         strcpy(user.name,token);
         token=strtok(NULL,",");
         user.age=atoi(token);
 
-        if(user.id==id)
+        if(user.user_id==user_id)
         {
-            found=1;
+            isUserFound=1;
             continue;
         }
 
-        fprintf(temp,"%d,%s,%d\n",user.id,user.name,user.age);
+        fprintf(tempFile,"%d,%s,%d\n",user.user_id,user.name,user.age);
     }
 
     fclose(file);
-    fclose(temp);
+    fclose(tempFile);
 
-    if(found==0)
+    if(isUserFound==0)
     {
         printf("User not found");
         return;
