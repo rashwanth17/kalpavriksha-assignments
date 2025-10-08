@@ -1,102 +1,154 @@
 #include <stdio.h>
-#include<ctype.h>
-#include<stdlib.h>
-#define MAX 1000
-int stack[MAX];
-int top=-1;
-char op[MAX];
-int ot=-1;
+#include <ctype.h>
+#include <stdlib.h>
 
-int operation(int x,int y,char ch) //performs arithmetic operations
+#define MAX_SIZE 1000
+
+int numStack[MAX_SIZE];
+int numTop=-1;
+char opStack[MAX_SIZE];
+int opTop=-1;
+
+int performOperation(int operand1,int operand2,char operator) //performs arithmetic operations
 {
-    if(ch=='+') return x+y;
-    else if(ch=='-') return x-y;
-    else if(ch=='*') return x*y;
-    else{
-        if(y==0)
-        {
-            printf("cannot divide by 0");
+
+    switch (operator) 
+    {
+        case '+': return operand1 + operand2;
+        case '-': return operand1 - operand2;
+        case '*': return operand1 * operand2;
+        case '/':
+            if (operand2 == 0) {
+                printf("Error: Division by zero is not allowed.\n");
+                exit(1);
+            }
+            return operand1 / operand2;
+        default:
+            printf("Error: Unknown operator '%c'\n", operator);
             exit(1);
-        }
-        return x/y;
     }
 }
 
-int precedence(char ch) //precedence logic
+int getPrecedence(char operator) //precedence logic
 {
-    if(ch=='+' || ch=='-') return 1;
-    if(ch=='*' || ch=='/') return 2;
+
+    if(operator=='+' || operator=='-') return 1;
+    if(operator=='*' || operator=='/') return 2;
     return 0;
 }
 
-void process() //handles the stacks
+void processStacks() //handles the stacks
 {
-    char c=op[ot--];
-    int x=stack[top--];
-    int y=stack[top--];
-    int ans=operation(y,x,c);
-    stack[++top]=ans;
 
+    char operator=opStack[opTop--];
+    int operand2=numStack[numTop--];
+    int operand1=numStack[numTop--];
+
+    int result=performOperation(operand1,operand2,operator);
+    numStack[++numTop]=result;
+
+}
+
+// Validates if two consecutive operators exist
+int hasConsecutiveOperators(const char *expression, int index) 
+{
+
+    char current=expression[index];
+    char previous=expression[index-1];
+
+    return ((previous=='+' || previous=='-'|| previous=='*' || previous=='/') &&
+            (current=='+' || current=='-' || current=='*' || current=='/'));
 }
 
 int main()
 {
-    char exp[100];
+
+    char expression[100];
+
     printf("Enter the Mathematical Expression: ");
-    fgets(exp,sizeof(exp),stdin);
-    for(int i=0;exp[i]!='\0';i++)
+    if(fgets(expression,sizeof(expression),stdin)==NULL)
     {
-        if(isspace(exp[i])) continue; //checks for empty spaces and skips them
-        if(i!=0 && (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/')&&(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/')) //checks whether 2 opeartors in expression comes together
+       printf("Error: Failed to read input.\n");
+        return 1;
+    }
+
+    for(int i=0;expression[i]!='\0';i++)
+    {
+        if(isspace(expression[i])) continue; //checks for empty spaces and skips them
+
+        if(i!=0 && hasConsecutiveOperators(expression, i)) //checks whether 2 opeartors in expression comes together
         {
-            printf("invalid expression");
+            printf("Error: Invalid expression — consecutive operators found.\n");
             return 1;
         }
-        if(isdigit(exp[i]) || (exp[i]=='-' && (i==0 || isspace(exp[i-1])) || (exp[i-1]=='+' || exp[i-1]=='-' || exp[i-1]=='*' || exp[i-1]=='/'))) //handles expression if number starts with - symbol
+
+        if (isdigit(expression[i]) ||
+            (expression[i]=='-' && (i== 0 || expression[i-1]=='+' ||
+            expression[i-1]=='-' || expression[i-1]=='*' || expression[i-1]=='/')) ||
+            (expression[i]=='+' && (i==0 || expression[i-1]=='+' ||
+            expression[i-1]=='-' || expression[i-1]=='*' || expression[i-1]=='/'))) //handles expression if number starts with - symbol
         {
-            int neg=1;
-            if(exp[i]=='-')
+            int sign=1;
+            if(expression[i]=='-')
             {
-                neg=-1;
+                sign=-1;
                 i++;
             }
-            else if (exp[i]=='+')
+
+            else if (expression[i]=='+')
             {
                 i++;
             }
             
-            int num=0;
-            while(isdigit(exp[i]))
+            int number=0;
+            while(isdigit(expression[i]))
             {
-                num=num*10+(exp[i]-'0');
+                number=number*10+(expression[i]-'0');
                 i++;
             }
             i--;
             
-            if(top!=MAX-1)
+            if(numTop!=MAX_SIZE-1)
             {
-                top++;
-                stack[top]=neg*num;
+                numStack[++numTop]=sign*number;
+            }
+
+            else
+            {
+                printf("Error: Number stack overflow.\n");
+                return 1;
             }
         }
-        else if(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/')
+
+        else if(expression[i]=='+' || expression[i]=='-' || expression[i]=='*' || expression[i]=='/')
         {
-            while(ot!=-1 && precedence(op[ot])>=precedence(exp[i]))
+            while(opTop!=-1 && getPrecedence(opStack[opTop])>=getPrecedence(expression[i]))
             {
-                process();
+                processStacks();
             }
-            op[++ot]=exp[i]; 
+            opStack[++opTop]=expression[i];
         }
+
         else
         {
-            printf("invalid expression");
+            printf("Error: Invalid expression.\n");
+
             return 1;
         }
     }
-    while(ot!=-1)
+
+    while(opTop!=-1)
     {
-        process();
+        processStacks();
     }
-    printf("%d",stack[0]);
+
+    if(numTop!=0)
+    {
+        printf("Error: Invalid expression unmatched numbers and operators.\n");
+        return 1;
+    }
+
+    printf("RESULT: %d\n",numStack[0]);
+
     return 0;
 }
