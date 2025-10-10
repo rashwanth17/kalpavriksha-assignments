@@ -10,18 +10,18 @@ typedef struct
     double mark1;
     double mark2;
     double mark3;
-    double total_marks;
+    int total_marks;
     double average_mark;
     char grade;
 } Student;
 
 
-double calculate_total_marks(double mark1,double mark2, double mark3)
+int calculate_total_marks(double mark1,double mark2, double mark3)
 {
     return mark1+mark2+mark3;
 }
 
-double calculate_average_mark(double total_marks)
+double calculate_average_marks(double total_marks)
 {
     return total_marks/3.0;
 }
@@ -50,6 +50,16 @@ char calculate_grade(double average_mark)
     }
 }
 
+void display_student_details(Student student)
+{
+    printf("Roll : %d\n",student.roll_number);
+    printf("Name : %s\n",student.name);
+    printf("Total : %d\n",student.total_marks);
+    printf("Average : %lf\n",student.average_mark);
+    printf("Grade : %c\n",student.grade);
+    printf("\n");
+}
+
 int main()
 {
     int number_of_students;
@@ -64,6 +74,8 @@ int main()
         student[i].total_marks=calculate_total_marks(student[i].mark1,student[i].mark2,student[i].mark3);
         student[i].average_mark=calculate_average_marks(student[i].total_marks);
         student[i].grade=calculate_grade(student[i].average_mark);
+
+        display_student_details(student[i]);
     }
 
 }
