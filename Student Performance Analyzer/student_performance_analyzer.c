@@ -26,6 +26,30 @@ double calculate_average_mark(double total_marks)
     return total_marks/3.0;
 }
 
+char calculate_grade(double average_mark)
+{
+    if(average_mark>=85 && average_mark<=100)
+    {
+        return 'A';
+    }
+    else if(average_mark>=70 && average_mark<85)
+    {
+        return 'B';
+    }
+    else if(average_mark>=50 && average_mark<70)
+    {
+        return 'C';
+    }
+    else if(average_mark>=35 && average_mark<50)
+    {
+        return 'D';
+    }
+    else
+    {
+        return 'F';
+    }
+}
+
 int main()
 {
     int number_of_students;
