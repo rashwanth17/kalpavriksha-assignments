@@ -15,6 +15,16 @@ typedef struct
     char grade;
 } Student;
 
+ void print_roll_numbers(Student student[],int index,int number_of_students)
+ {
+    if(index==number_of_students)
+    {
+        return;
+    }
+    printf("%d ",student[index].roll_number);
+    print_roll_numbers(student,index+1,number_of_students);
+ }
+
 
 int calculate_total_marks(double mark1,double mark2, double mark3)
 {
@@ -50,14 +60,6 @@ char calculate_grade(double average_mark)
     }
 }
 
-void display_student_details(Student student)
-{
-    printf("Roll : %d\n",student.roll_number);
-    printf("Name : %s\n",student.name);
-    printf("Total : %d\n",student.total_marks);
-    printf("Average : %.2lf\n",student.average_mark);
-    printf("Grade : %c\n",student.grade);
-}
 void display_student_performance(char grade)
 {
     if(grade=='A')
@@ -76,7 +78,32 @@ void display_student_performance(char grade)
     {
         printf("Performance : **\n");
     }
+    printf("\n");
     
+}
+
+
+void display_student_details(Student student[], int number_of_students)
+{
+    for(int i=0;i<number_of_students;i++)
+    {
+
+        printf("Roll : %d\n",student[i].roll_number);
+        printf("Name : %s\n",student[i].name);
+        printf("Total : %d\n",student[i].total_marks);
+        printf("Average : %.2lf\n",student[i].average_mark);
+        printf("Grade : %c\n",student[i].grade);
+        if(student[i].average_mark<35)
+        {
+                printf("\n");
+                continue;
+        }
+        else
+        {
+            display_student_performance(student[i].grade);
+        }
+
+    }
 }
 
 int main()
@@ -94,8 +121,9 @@ int main()
         student[i].average_mark=calculate_average_marks(student[i].total_marks);
         student[i].grade=calculate_grade(student[i].average_mark);
 
-        display_student_details(student[i]);
-        display_student_performance(student[i].grade);
     }
+
+        display_student_details(student,number_of_students);
+        print_roll_numbers(student,0,number_of_students);
 
 }
