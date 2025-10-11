@@ -55,9 +55,28 @@ void display_student_details(Student student)
     printf("Roll : %d\n",student.roll_number);
     printf("Name : %s\n",student.name);
     printf("Total : %d\n",student.total_marks);
-    printf("Average : %lf\n",student.average_mark);
+    printf("Average : %.2lf\n",student.average_mark);
     printf("Grade : %c\n",student.grade);
-    printf("\n");
+}
+void display_student_performance(char grade)
+{
+    if(grade=='A')
+    {
+        printf("Performance : *****\n");
+    }
+    else if(grade=='B')
+    {
+        printf("Performance : ****\n");
+    }
+    else if(grade=='C')
+    {
+        printf("Performance : ***\n");
+    }
+    else if(grade=='D')
+    {
+        printf("Performance : **\n");
+    }
+    
 }
 
 int main()
@@ -76,6 +95,7 @@ int main()
         student[i].grade=calculate_grade(student[i].average_mark);
 
         display_student_details(student[i]);
+        display_student_performance(student[i].grade);
     }
 
 }
