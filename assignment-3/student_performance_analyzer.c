@@ -22,6 +22,7 @@ typedef struct
         return;
     }
     printf("%d ",student[index].roll_number);
+
     print_roll_numbers(student,index+1,number_of_students);
  }
 
@@ -78,6 +79,7 @@ void display_student_performance(char grade)
     {
         printf("Performance : **\n");
     }
+
     printf("\n");
     
 }
@@ -93,6 +95,7 @@ void display_student_details(Student student[], int number_of_students)
         printf("Total : %d\n",student[i].total_marks);
         printf("Average : %.2lf\n",student[i].average_mark);
         printf("Grade : %c\n",student[i].grade);
+
         if(student[i].average_mark<35)
         {
                 printf("\n");
@@ -113,10 +116,17 @@ int main()
     scanf("%d",&number_of_students);
     Student student[100];
 
+    if(number_of_students<=0)
+    {
+        printf("Invalid number of students \n");
+        return 0;
+    }
+
     for(int i=0;i<number_of_students;i++)
     {
         printf("Enter Roll number , Name , Mark 1 , Mark 2 , Mark 3 :");
         scanf("%d %50s %lf %lf %lf",&student[i].roll_number,student[i].name,&student[i].mark1,&student[i].mark2,&student[i].mark3);
+        
         student[i].total_marks=calculate_total_marks(student[i].mark1,student[i].mark2,student[i].mark3);
         student[i].average_mark=calculate_average_marks(student[i].total_marks);
         student[i].grade=calculate_grade(student[i].average_mark);
@@ -124,6 +134,8 @@ int main()
     }
 
         display_student_details(student,number_of_students);
+        printf("\nList of Roll Numbers (via recursion): ");
         print_roll_numbers(student,0,number_of_students);
+        printf("\n");
 
 }
