@@ -130,18 +130,27 @@ int main()
     int number_of_students;
     printf("Enter the Number of Students: ");
     scanf("%d",&number_of_students);
-    Student student[100];
-
-    if(number_of_students<=0)
+    
+    if(number_of_students<1 || number_of_students>100)
     {
-        printf("Invalid number of students \n");
+        printf("Error: Number of students must be between 1 and 100.\n");
         return 0;
     }
+    
+    Student student[100];
 
     for(int i=0;i<number_of_students;i++)
     {
         printf("Enter Roll number , Name , Mark 1 , Mark 2 , Mark 3 :");
         scanf("%d %50s %lf %lf %lf",&student[i].roll_number,student[i].name,&student[i].mark1,&student[i].mark2,&student[i].mark3);
+
+         if (student[i].mark1<0 ||student[i].mark1>100 ||
+            student[i].mark2<0 ||student[i].mark2>100 ||
+            student[i].mark3<0 ||student[i].mark3>100)
+        {
+            printf("Error: Marks should be between 0 and 100.\n");
+            return 1;
+        }
         
         student[i].total_marks=calculate_total_marks(student[i].mark1,student[i].mark2,student[i].mark3);
         student[i].average_mark=calculate_average_marks(student[i].total_marks);
@@ -150,6 +159,7 @@ int main()
     }
         sort_by_roll_number(student,number_of_students);
         display_student_details(student,number_of_students);
+        
         printf("\nList of Roll Numbers (via recursion): ");
         print_roll_numbers(student,0,number_of_students);
         printf("\n");
