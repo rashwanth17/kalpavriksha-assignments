@@ -26,6 +26,22 @@ typedef struct
     print_roll_numbers(student,index+1,number_of_students);
  }
 
+ void sort_by_roll_number(Student student[],int number_of_students)
+ {
+    for(int i=0;i<number_of_students-1;i++)
+    {
+        for(int j=0;j<number_of_students-i-1;j++)
+        {
+            if(student[j].roll_number>student[j+1].roll_number)
+            {
+                Student swapStudent=student[j];
+                student[j]=student[j+1];
+                student[j+1]=swapStudent;
+            }
+        }
+    }
+ }
+
 
 int calculate_total_marks(double mark1,double mark2, double mark3)
 {
@@ -132,7 +148,7 @@ int main()
         student[i].grade=calculate_grade(student[i].average_mark);
 
     }
-
+        sort_by_roll_number(student,number_of_students);
         display_student_details(student,number_of_students);
         printf("\nList of Roll Numbers (via recursion): ");
         print_roll_numbers(student,0,number_of_students);
