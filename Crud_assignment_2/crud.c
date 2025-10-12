@@ -1,155 +1,290 @@
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#define USER_FILE "users.txt"
+#define TEMP_FILE "temp.txt"
 
-#define MAX_SIZE 1000
+//structure for the user deatails
+typedef struct{
+    int user_id;
+    char name[50];
+    int age;
+}User;
 
-int numStack[MAX_SIZE];
-int numTop=-1;
-char opStack[MAX_SIZE];
-int opTop=-1;
-
-int performOperation(int operand1,int operand2,char operator) //performs arithmetic operations
+//to find the next ID
+int getNextUserId()
 {
 
-    switch (operator) 
+    FILE *file=fopen(USER_FILE,"r");
+    if(!file)
     {
-        case '+': return operand1 + operand2;
-        case '-': return operand1 - operand2;
-        case '*': return operand1 * operand2;
-        case '/':
-            if (operand2 == 0)
-            {
-                printf("Error: Division by zero is not allowed.\n");
-                exit(1);
-            }
-            return operand1 / operand2;
-        default:
-            printf("Error: Unknown operator '%c'\n", operator);
-            exit(1);
+        printf("Error: Could not open file\n");
+        return 1;
     }
+
+    int maxUserId=0;
+    int currentUserId;
+    int tempAge;
+    char tempName[50];
+
+    while(fscanf(file,"%d,%49[^,],%d\n",&currentUserId,tempName,&tempAge)==3)
+    {
+        if(currentUserId>maxUserId) maxUserId=currentUserId;
+    }
+
+    fclose(file);
+
+    return maxUserId+1;
 }
 
-int getPrecedence(char operator) //precedence logic
+//creates a new user
+void createUser()
 {
 
-    if(operator=='+' || operator=='-') return 1;
-    if(operator=='*' || operator=='/') return 2;
-    return 0;
+    User user;
+    user.user_id=getNextUserId();
+
+    printf("Enter your name: \n");
+    getchar();
+    fgets(user.name,sizeof(user.name),stdin);
+    user.name[strcspn(user.name,"\n")]=0;
+
+    printf("Enter your age: \n");
+    scanf("%d",&user.age);
+
+    while(getchar()!='\n');
+    FILE *file=fopen(USER_FILE,"a");
+    if(!file)
+    {
+        printf("Error: Could not open file\n");
+        return;
+    }
+
+    fprintf(file,"%d,%s,%d\n",user.user_id,user.name,user.age);
+    printf("User created with ID %d \n",user.user_id);
+
+    fclose(file);
 }
 
-void processStacks() //handles the stacks
+//displays all the users from file
+void displayUser()
 {
 
-    char operator=opStack[opTop--];
-    int operand2=numStack[numTop--];
-    int operand1=numStack[numTop--];
+    FILE *file=fopen(USER_FILE,"r");
+    if(!file)
+    {
+        printf("User not found");
+        return;
+    }
 
-    int result=performOperation(operand1,operand2,operator);
-    numStack[++numTop]=result;
+    char line[100];
+    printf("ID Name Age \n");
 
+    while(fgets(line,sizeof(line),file))
+    {
+        User user;
+        char *token=strtok(line,",");
+        user.user_id=atoi(token);
+        token=strtok(NULL,",");
+        strcpy(user.name,token);
+        token=strtok(NULL,",");
+        user.age=atoi(token);
+        printf("%d %s %d\n",user.user_id,user.name,user.age);
+    }
+
+    fclose(file);
 }
 
-// Validates if two consecutive operators exist
-int hasConsecutiveOperators(const char *expression, int index) 
+//updates the userdetails
+void updateUser()
 {
 
-    char current=expression[index];
-    char previous=expression[index-1];
+    int user_id;
+    printf("Enter the ID of the user you want to update: \n");
+    scanf("%d",&user_id);
 
-    return ((previous=='+' || previous=='-'|| previous=='*' || previous=='/') &&
-            (current=='+' || current=='-' || current=='*' || current=='/'));
+    while(getchar()!='\n');
+    FILE *file=fopen(USER_FILE,"r");
+
+    if(!file)
+    {
+        printf("Error: Could not open file\n");
+        return;
+    }
+
+    FILE *tempFile=fopen(TEMP_FILE,"w");
+    if(!tempFile)
+    {
+        printf("Error: Could not open file\n");
+        return;
+    }
+
+    char line[100];
+    int isUserFound=0;
+
+    while(fgets(line,sizeof(line),file))
+    {
+        User user;
+        char *token=strtok(line,",");
+        user.user_id=atoi(token);
+        token=strtok(NULL,",");
+        strcpy(user.name,token);
+        token=strtok(NULL,",");
+        user.age=atoi(token);
+
+        if(user.user_id==user_id)
+        {
+            isUserFound=1;
+            printf("Enter the new name: \n");
+            fgets(user.name,sizeof(user.name),stdin);
+            user.name[strcspn(user.name,"\n")]=0;
+            printf("Enter new age: \n");
+            scanf("%d",&user.age);
+            while(getchar()!='\n');
+        }
+
+        fprintf(tempFile,"%d,%s,%d\n",user.user_id,user.name,user.age);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    if(isUserFound==0)
+    {
+        printf("User not found");
+        return;
+    }
+
+    if(remove(USER_FILE)!=0)
+    {
+        printf("Error deleting original file");
+        return;
+    }
+
+    if(rename(TEMP_FILE,USER_FILE))
+    {
+        printf("Error renaming temporary file");
+        return;
+    }
+
+    printf("User details updated\n");
 }
 
+//deletes the user
+void deleteUser()
+{
+
+    int user_id;
+
+    printf("Enter ID to delete the user: \n");
+    scanf("%d",&user_id);
+    while(getchar()!='\n');
+
+    FILE *file=fopen(USER_FILE,"r");
+
+    if(!file)
+    {
+        printf("Error: Could not open file\n");
+        return;
+    }
+
+    FILE *tempFile=fopen(TEMP_FILE,"w");
+
+    if(!tempFile)
+    {
+        printf("Error: Could not open file\n");
+        return;
+    }
+
+    char line[100];
+    int isUserFound=0;
+
+    while(fgets(line,sizeof(line),file))
+    {
+        User user;
+        char *token=strtok(line,",");
+        user.user_id=atoi(token);
+        token=strtok(NULL,",");
+        strcpy(user.name,token);
+        token=strtok(NULL,",");
+        user.age=atoi(token);
+
+        if(user.user_id==user_id)
+        {
+            isUserFound=1;
+            continue;
+        }
+
+        fprintf(tempFile,"%d,%s,%d\n",user.user_id,user.name,user.age);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    if(isUserFound==0)
+    {
+        printf("User not found");
+        return;
+    }
+
+    if(remove(USER_FILE)!=0)
+    {
+        printf("Error deleting original file");
+        return;
+    }
+
+    if(rename(TEMP_FILE,USER_FILE))
+    {
+        printf("Error renaming temporary file");
+        return;
+    }
+
+    printf("User deleted\n");
+}
 int main()
 {
-
-    char expression[100];
-
-    printf("Enter the Mathematical Expression: ");
-    if(fgets(expression,sizeof(expression),stdin)==NULL)
+    
+    while(1)
     {
-       printf("Error: Failed to read input.\n");
-        return 1;
-    }
+        printf("1. Create User\n");
+        printf("2. Display Users\n");
+        printf("3. Update user details\n");
+        printf("4. Delete User\n");
+        printf("5. EXIT\n");
+        printf("Enter the choice: ");
 
-    for(int i=0;expression[i]!='\0';i++)
-    {
-        if(isspace(expression[i])) continue; //checks for empty spaces and skips them
-
-        if(i!=0 && hasConsecutiveOperators(expression, i)) //checks whether 2 opeartors in expression comes together
+        int choice;
+        if(scanf("%d",&choice)!=1)
         {
-            printf("Error: Invalid expression — consecutive operators found.\n");
-            return 1;
-        }
+            printf("Inavlid input, please enter a number betwen 1-5\n");
+            while(getchar()!='\n');
+            continue;
+        };
 
-        if (isdigit(expression[i]) ||
-            (expression[i]=='-' && (i== 0 || expression[i-1]=='+' ||
-            expression[i-1]=='-' || expression[i-1]=='*' || expression[i-1]=='/')) ||
-            (expression[i]=='+' && (i==0 || expression[i-1]=='+' ||
-            expression[i-1]=='-' || expression[i-1]=='*' || expression[i-1]=='/'))) //handles expression if number starts with - symbol
+        switch(choice)
         {
-            int sign=1;
-            if(expression[i]=='-')
-            {
-                sign=-1;
-                i++;
-            }
+            case 1:
+            createUser();
+            break;
 
-            else if (expression[i]=='+')
-            {
-                i++;
-            }
-            
-            int number=0;
-            while(isdigit(expression[i]))
-            {
-                number=number*10+(expression[i]-'0');
-                i++;
-            }
-            i--;
-            
-            if(numTop!=MAX_SIZE-1)
-            {
-                numStack[++numTop]=sign*number;
-            }
+            case 2:
+            displayUser();
+            break;
 
-            else
-            {
-                printf("Error: Number stack overflow.\n");
-                return 1;
-            }
-        }
+            case 3:
+            updateUser();
+            break;
 
-        else if(expression[i]=='+' || expression[i]=='-' || expression[i]=='*' || expression[i]=='/')
-        {
-            while(opTop!=-1 && getPrecedence(opStack[opTop])>=getPrecedence(expression[i]))
-            {
-                processStacks();
-            }
-            opStack[++opTop]=expression[i];
-        }
+            case 4:
+            deleteUser();
+            break;
 
-        else
-        {
-            printf("Error: Invalid expression.\n");
+            case 5:
+            printf("BYE");
+            exit(0);
 
-            return 1;
+            default:
+            printf("Please select relevant choice between 1-5\n");
         }
     }
-
-    while(opTop!=-1)
-    {
-        processStacks();
-    }
-
-    if(numTop!=0)
-    {
-        printf("Error: Invalid expression unmatched numbers and operators.\n");
-        return 1;
-    }
-
-    printf("RESULT: %d\n",numStack[0]);
-
-    return 0;
 }
