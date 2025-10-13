@@ -24,6 +24,7 @@ typedef struct
     {
         return;
     }
+
     printf("%d ",student[index].roll_number);
 
     print_roll_numbers(student,index+1,number_of_students);
@@ -35,7 +36,7 @@ typedef struct
     {
         return 0;
     }
-    
+
     for(int index=0; input[index]!='\0';index++)
     {
         if(!isdigit(input[index]))
@@ -55,9 +56,11 @@ typedef struct
         {
             if(student[next_index].roll_number>student[next_index+1].roll_number)
             {
-                Student swapStudent=student[next_index];
+
+                Student swap_student=student[next_index];
                 student[next_index]=student[next_index+1];
-                student[next_index+1]=swapStudent;
+                student[next_index+1]=swap_student;
+
             }
         }
     }
@@ -172,6 +175,7 @@ int main()
     for(int index=0;index<number_of_students;index++)
     {
         printf("Enter Roll number , Name , Mark 1 , Mark 2 , Mark 3 :");
+
         if (scanf("%s %49s %lf %lf %lf",roll_input,student[index].name,&student[index].mark1,&student[index].mark2,&student[index].mark3) != 5) 
         {
             printf("Error: Invalid input format. Please enter roll number, name and three marks correctly.\n");
@@ -192,9 +196,7 @@ int main()
             return 1;
         }
 
-
-
-         if (student[index].mark1<0 ||student[index].mark1>100 ||
+        if (student[index].mark1<0 ||student[index].mark1>100 ||
             student[index].mark2<0 ||student[index].mark2>100 ||
             student[index].mark3<0 ||student[index].mark3>100)
         {
