@@ -88,7 +88,7 @@ int main()
     printf("Enter the size of the matrix (2-10): ");
     scanf("%d",&matrix_size);
 
-    if(matrix_size<2||matrix_size>11)
+    if(matrix_size<2||matrix_size>10)
     {
         printf("Invalid input. Size must be between 2 and 10.\n");
         return 1;
