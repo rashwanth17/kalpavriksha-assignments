@@ -44,7 +44,7 @@ void smooth_matrix(int matrix_size,int *matrix_ptr)
                     }
                 }
             }
-            
+
             int average=sum/count;
             *(matrix_ptr+row*matrix_size+column)=average;
         }
@@ -85,12 +85,12 @@ void rotate_matrix(int matrix_size,int *matrix_ptr)
 int main()
 {
     int matrix_size;
-    printf("Enter the size of the matrix (2-255): ");
+    printf("Enter the size of the matrix (2-10): ");
     scanf("%d",&matrix_size);
 
-    if(matrix_size<2||matrix_size>255)
+    if(matrix_size<2||matrix_size>11)
     {
-        printf("Invalid input. Size must be between 2 and 255.\n");
+        printf("Invalid input. Size must be between 2 and 10.\n");
         return 1;
     }
 
