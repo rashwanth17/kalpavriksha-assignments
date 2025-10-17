@@ -28,6 +28,19 @@ void generate_random_matrix(int matrix_size,int *matrix_ptr)
 
 void smooth_matrix(int matrix_size,int *matrix_ptr)
 {
+    int *temp_matrix=(int*)malloc(matrix_size*matrix_size*sizeof(int));
+    if(temp_matrix==NULL)
+    {
+        printf("Memory allocation failed for temp matrix.\n");
+        return;
+    }
+
+    int total_elements=matrix_size*matrix_size;
+    for(int index=0;index<total_elements;index++)
+    {
+        *(temp_matrix+index)=*(matrix_ptr+index);
+    }
+
     for(int row=0;row<matrix_size;row++)
     {
         for(int column=0;column<matrix_size;column++)
@@ -39,7 +52,7 @@ void smooth_matrix(int matrix_size,int *matrix_ptr)
                 {
                     if(i>=0 && i<matrix_size && j>=0 && j<matrix_size)
                     {
-                        sum+=(*(matrix_ptr+i*matrix_size+j));
+                        sum+=*(temp_matrix+i*matrix_size+j);
                         count++;
                     }
                 }
@@ -49,9 +62,13 @@ void smooth_matrix(int matrix_size,int *matrix_ptr)
             *(matrix_ptr+row*matrix_size+column)=average;
         }
     }
+
+    free(temp_matrix);
+
     printf("Smoothed Matrix:\n");
     display_matrix(matrix_size,matrix_ptr);
 }
+
 
 void rotate_matrix(int matrix_size,int *matrix_ptr)
 {
