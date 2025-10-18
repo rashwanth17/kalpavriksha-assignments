@@ -1,6 +1,8 @@
 #include<stdio.h>
 #include<time.h>
 #include<stdlib.h>
+#include<ctype.h>
+#include<string.h>
 
 void display_matrix(int matrix_size,int *matrix_ptr)
 {
@@ -14,9 +16,23 @@ void display_matrix(int matrix_size,int *matrix_ptr)
     }
 }
 
+int is_valid_input(char *input)
+{
+    for(int index=0;*(input+index)!='\0';index++)
+    {
+        if(!isdigit(*(input+index)))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 void generate_random_matrix(int matrix_size,int *matrix_ptr)
 {
     srand(time(0));
+
     for(int row=0;row<matrix_size;row++)
     {
         for(int column=0;column<matrix_size;column++)
@@ -29,6 +45,7 @@ void generate_random_matrix(int matrix_size,int *matrix_ptr)
 void smooth_matrix(int matrix_size,int *matrix_ptr)
 {
     int *temp_matrix=(int*)malloc(matrix_size*matrix_size*sizeof(int));
+
     if(temp_matrix==NULL)
     {
         printf("Memory allocation failed for temp matrix.\n");
@@ -95,16 +112,24 @@ void rotate_matrix(int matrix_size,int *matrix_ptr)
             *right_element=temp;
         }
     }
+    
     printf("Rotated Matrix:\n");
     display_matrix(matrix_size,matrix_ptr);
 }
 
 int main()
 {
-    int matrix_size;
+    char input[10];
     printf("Enter the size of the matrix (2-10): ");
-    scanf("%d",&matrix_size);
-
+    scanf("%s",input);
+    
+    if(!is_valid_input(input))
+    {
+        printf("Invalid input. Please enter a number.\n");
+        return 1;
+    }
+    
+    int matrix_size=atoi(input);
     if(matrix_size<2||matrix_size>10)
     {
         printf("Invalid input. Size must be between 2 and 10.\n");
@@ -118,6 +143,7 @@ int main()
         printf("Memory allocation failed.\n");
         return 1;
     }
+
     generate_random_matrix(matrix_size,matrix_ptr);
 
     printf("Randomly Generated Matrix:\n");
