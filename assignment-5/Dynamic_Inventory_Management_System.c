@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<ctype.h>
 #include<stdlib.h>
+#include<string.h>
 
 typedef struct
 {
@@ -99,7 +100,7 @@ void getValidProductPrice(int index,Product *inventory)
         }
     }
     float price_value=atof(product_price);
-    if(price_value<=0 || price_value>10000)
+    if(price_value<=0 || price_value>100000)
     {
         printf("Error: price value should be in the range 1 to 10000!");
         exit(0);
@@ -119,7 +120,7 @@ void getValidProductQuantity(int index,Product *inventory)
     int product_quantity=atoi(product_quantity_text);
     if(product_quantity<1 || product_quantity>100000)
     {
-        printf("Error: Product ID must be in the range between 1 to 10000!");
+        printf("Error: Product quantity must be in the range between 1 to 100000!");
         exit(0);
     }
     inventory[index].product_quantity=product_quantity;
