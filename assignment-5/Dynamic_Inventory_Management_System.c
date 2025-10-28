@@ -24,6 +24,19 @@ int validInput(char *number_of_products_text)
     return 1;
 }
 
+int isDuplicateId(int product_ID,Product *inventory,int number_of_products)
+{
+    for(int index=0;index<number_of_products;index++)
+    {
+        if(inventory[index].product_ID==product_ID)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int getValidProductID()
 {
     char product_ID_text[5];
@@ -128,8 +141,8 @@ void getValidProductQuantity(int index,Product *inventory)
 
     if(!validInput(product_quantity_text))
     {
-        printf("Error: Enter proper Product Id!\n");
-        exit(0);
+        printf("Error: Enter proper Product quantity!\n");
+        return;
     }
 
     int product_quantity=atoi(product_quantity_text);
@@ -137,10 +150,11 @@ void getValidProductQuantity(int index,Product *inventory)
     if(product_quantity<1 || product_quantity>100000)
     {
         printf("Error: Product quantity must be in the range between 1 to 100000!\n");
-        exit(0);
+        return;
     }
 
     inventory[index].product_quantity=product_quantity;
+    printf("Quantity updated successfully!\n");
 }
 
 void getProductDetails(Product *inventory,int number_of_products)
@@ -151,6 +165,13 @@ void getProductDetails(Product *inventory,int number_of_products)
 
         printf("Product ID: ");
         int product_ID=getValidProductID();
+
+        if(isDuplicateId(product_ID,inventory,index))
+        {
+            printf("Error: Product Id already exists, enter a unique ID.\n");
+            index--;
+            continue;
+        }
         inventory[index].product_ID=product_ID;
 
         printf("Product Name: ");
@@ -162,6 +183,7 @@ void getProductDetails(Product *inventory,int number_of_products)
 
         printf("Product Quantity: ");
         getValidProductQuantity(index,inventory);
+        printf("\n");
     }
 }
 
@@ -173,7 +195,7 @@ void addNewProduct(int *number_of_products,Product **inventory)
     if(temporary_pointer==NULL)
     {
         printf("Error: Memory Allocation failed\n");
-        exit(0);
+        return;
     }
 
     *inventory=temporary_pointer;
@@ -183,6 +205,12 @@ void addNewProduct(int *number_of_products,Product **inventory)
 
     printf("Product ID: ");
     int product_ID=getValidProductID();
+    if(isDuplicateId(product_ID,*inventory,*number_of_products-1))
+    {
+        printf("Error: Product Id already exists, enter a unique ID.\n");
+        (*number_of_products)--;
+        return;
+    }
     (*inventory)[index].product_ID=product_ID;
 
     printf("Product Name: ");
@@ -201,7 +229,7 @@ void addNewProduct(int *number_of_products,Product **inventory)
 
 void viewProducts(int number_of_products,Product *inventory)
 {
-    printf("========= PRODUCT LIST =========\n");
+    printf("\n\n========= PRODUCT LIST =========\n");
 
     for (int index=0;index<number_of_products;index++)
     {
@@ -241,9 +269,10 @@ void updateQuantity(Product *inventory,int number_of_products)
         printf("Error: Product Not Found!\n");
         return; 
     }
+
     printf("Enter new Quantity: ");
     getValidProductQuantity(index,inventory);
-    printf("Quantity updated successfully!\n");
+    
 }
 
 void searchProductByID(Product *inventory,int number_of_products)
@@ -414,7 +443,7 @@ int main()
 
     while(1)
     {
-        printf("============INVENTORY MENU============\n");
+        printf("\n\n============INVENTORY MENU============\n");
         printf("1. Add New Product\n");
         printf("2. View All Products\n");
         printf("3. Update Quantity\n");
