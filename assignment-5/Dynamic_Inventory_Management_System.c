@@ -83,19 +83,27 @@ void getValidProductName(int index,Product *inventory)
             length--;
         }
 
-        if(length>50)
+        int start=0;
+        while(isspace((unsigned char)product_name[start])) start++;
+        int end=length-1;
+        while(end>=start && isspace((unsigned char)product_name[end])) end--;
+
+        int trimmed_length=end-start+1;
+
+        if(trimmed_length>50)
         {
             printf("Error: The length of the Product Name should not exceed 50 characters!\n");
             continue;
         }
 
-        if(length==0)
+        if(trimmed_length==0)
         {
             printf("Error: Product Name should not be empty!\n");
             continue;
         }
     
-        strcpy(inventory[index].product_name,product_name);
+        strncpy(inventory[index].product_name,product_name+start,trimmed_length);
+        inventory[index].product_name[trimmed_length]='\0';
         break;
     }
 }
