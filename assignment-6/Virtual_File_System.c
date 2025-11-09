@@ -557,6 +557,79 @@ void cdCommand(char *name)
     currentDirectory = targetDirectory;
 }
 
+static void decodeEscapesInPlace(char *text)
+{
+    char *readPointer = text;
+    char *writePointer = text;
+
+    while(*readPointer)
+    {
+        if(*readPointer == '\\')
+        {
+            readPointer++;
+
+            if(*readPointer == 'n') { *writePointer++ = '\n'; readPointer++; }
+            else if(*readPointer == 't') { *writePointer++ = '\t'; readPointer++; }
+            else if(*readPointer == 'r') { *writePointer++ = '\r'; readPointer++; }
+            else if(*readPointer == '\"') { *writePointer++ = '\"'; readPointer++; }
+            else if(*readPointer == '\\') { *writePointer++ = '\\'; readPointer++; }
+            else
+            {
+                *writePointer++ = '\\';
+                if(*readPointer)
+                {
+                    *writePointer++ = *readPointer++;
+                }
+            }
+        }
+        else
+        {
+            *writePointer++ = *readPointer++;
+        }
+    }
+
+    *writePointer = '\0';
+}
+
+static void extractWriteContent(const char *inputText, char *outputText, int outputSize)
+{
+    while(*inputText == ' ' || *inputText == '\t')
+    {
+        inputText++;
+    }
+
+    if(*inputText == '\"')
+    {
+        inputText++;
+        int outputIndex = 0;
+
+        while(*inputText && *inputText != '\"' && outputIndex < outputSize - 1)
+        {
+            if(*inputText == '\\' && inputText[1] != '\0')
+            {
+                outputText[outputIndex++] = *inputText++;
+                if(outputIndex < outputSize - 1)
+                {
+                    outputText[outputIndex++] = *inputText++;
+                }
+            }
+            else
+            {
+                outputText[outputIndex++] = *inputText++;
+            }
+        }
+
+        outputText[outputIndex] = '\0';
+        decodeEscapesInPlace(outputText);
+    }
+    else
+    {
+        strncpy(outputText, inputText, outputSize - 1);
+        outputText[outputSize - 1] = '\0';
+        decodeEscapesInPlace(outputText);
+    }
+}
+
 void createCommand(char *name)
 {
     if(name == NULL)
@@ -754,7 +827,9 @@ void processCommand(char *line)
         char *data = strtok(NULL, "\n");        
         if(filename != NULL && data != NULL)
         {
-            writeCommand(filename, data);
+            char content[MAX_LINE];
+            extractWriteContent(data, content, sizeof(content));
+            writeCommand(filename, content);
         }
         else
         {
