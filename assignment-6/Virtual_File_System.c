@@ -35,19 +35,19 @@ static FileNode *root = NULL;
 static int freeBlockCount = 0;
 static FileNode *currentDirectory = NULL;
 
-static int is_bad_name(const char *s)
+static int is_bad_name(const char *name)
 { 
-    if(!s || !(*s))
+    if(!name || !(*name))
     {
         return 1; 
     }
 
-    if(!strcmp(s, ".") || !strcmp(s, ".."))
+    if(!strcmp(name, ".") || !strcmp(name, ".."))
     {
         return 1;
     }
 
-    if(strlen(s) >= MAX_NAME)
+    if(strlen(name) >= MAX_NAME)
     {
         return 1;
     }
@@ -60,23 +60,23 @@ void initializeFreeBlockList()
     freeBlockListHead = freeBlockListTail = NULL; 
     freeBlockCount = 0;
 
-    for(int i = 0; i < NUMBER_OF_BLOCKS; i++)
+    for(int index = 0; index < NUMBER_OF_BLOCKS; index++)
     {
-        FreeBlock *n = (FreeBlock*)malloc(sizeof(FreeBlock));
-        n->index = i;
-        n->next = NULL; 
-        n->prev = freeBlockListTail;
+        FreeBlock *newBlock = (FreeBlock*)malloc(sizeof(FreeBlock));
+        newBlock->index = index;
+        newBlock->next = NULL; 
+        newBlock->prev = freeBlockListTail;
 
         if(!freeBlockListHead)
         {
-            freeBlockListHead = n;
+            freeBlockListHead = newBlock;
         } 
         if(freeBlockListTail)
         {
-            freeBlockListTail->next = n;
+            freeBlockListTail->next = newBlock;
         }
 
-        freeBlockListTail = n; 
+        freeBlockListTail = newBlock; 
         freeBlockCount++;
     }
 }
@@ -259,9 +259,9 @@ void freeFileSystem(FileNode *node)
 
     if(!node->isDirectory && node->blockPointers)
     {
-        for(int i = 0; i < node->dynamicBlocksCount; i++)
+        for(int index = 0; index < node->dynamicBlocksCount; index++)
         {
-            pushFreeBlockTail(node->blockPointers[i]);
+            pushFreeBlockTail(node->blockPointers[index]);
         }
         free(node->blockPointers);
     }
@@ -272,32 +272,32 @@ void freeFileSystem(FileNode *node)
 int rightTrim(char *str)
 {
     int len = (int)strlen(str);
-    int i = len - 1;
+    int index = len - 1;
 
-    while(i >= 0 && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
+    while(index >= 0 && (str[index] == ' ' || str[index] == '\t' || str[index] == '\n'))
     {
-        str[i] = '\0';
-        i--;
+        str[index] = '\0';
+        index--;
     }
-    return i + 1;
+    return index + 1;
 }
 
 int leftTrim(char *str)
 {
     int len = (int)strlen(str);
-    int i = 0;
+    int index = 0;
 
-    while(i < len && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
+    while(index < len && (str[index] == ' ' || str[index] == '\t' || str[index] == '\n'))
     {
-        i++;
+        index++;
     }
 
-    if(i > 0)
+    if(index > 0)
     {
-        memmove(str, str + i, len - i + 1);
+        memmove(str, str + index, len - index + 1);
     }
 
-    return len - i;
+    return len - index;
 }
 
 int freeBlockOfFile(FileNode *file)
@@ -336,12 +336,12 @@ static void writeAppend(FileNode *file, const char *data)
         return;
     }
 
-    int curSize = file->fileSize;
-    int curBlocks = curSize ? ((curSize + BLOCK_SIZE - 1) / BLOCK_SIZE) : 0;
-    int off = curSize % BLOCK_SIZE;
-    int totalSize = curSize + addBytes;
+    int currentSize = file->fileSize;
+    int currentBlocks = currentSize ? ((currentSize + BLOCK_SIZE - 1) / BLOCK_SIZE) : 0;
+    int off = currentSize % BLOCK_SIZE;
+    int totalSize = currentSize + addBytes;
     int needBlocks = (totalSize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    int extra = needBlocks - curBlocks;
+    int extra = needBlocks - currentBlocks;
 
     if(extra < 0)
     {
@@ -359,9 +359,9 @@ static void writeAppend(FileNode *file, const char *data)
         file->blockPointers = (int*)malloc(sizeof(int) * needBlocks);
         file->dynamicBlocksCount = 0;
 
-        for(int i = 0; i < needBlocks; i++)
+        for(int index = 0; index < needBlocks; index++)
         {
-            file->blockPointers[i] = -1;
+            file->blockPointers[index] = -1;
         }
     }
     else if(extra > 0)
@@ -375,21 +375,21 @@ static void writeAppend(FileNode *file, const char *data)
 
         file->blockPointers = np;
 
-        for(int i = file->dynamicBlocksCount; i < needBlocks; i++)
+        for(int index = file->dynamicBlocksCount; index < needBlocks; index++)
         {
-            file->blockPointers[i] = -1;
+            file->blockPointers[index] = -1;
         }
     }
 
-    for(int i = curBlocks; i < needBlocks; i++)
+    for(int i = currentBlocks; i < needBlocks; i++)
     {
-        int idx = popFreeBlockHead();
-        if(idx == -1)
+        int index = popFreeBlockHead();
+        if(index == -1)
         {
             printf("Disk full! Cannot write data.\n");
             return;
         }
-        file->blockPointers[i] = idx;
+        file->blockPointers[i] = index;
     }
 
     if(needBlocks > file->dynamicBlocksCount)
@@ -397,29 +397,29 @@ static void writeAppend(FileNode *file, const char *data)
         file->dynamicBlocksCount = needBlocks;
     }
 
-    const unsigned char *src = (const unsigned char*)data;
+    const unsigned char *source = (const unsigned char*)data;
     int remaining = addBytes;
 
-    if(off != 0 && curBlocks > 0)
+    if(off != 0 && currentBlocks > 0)
     {
-        int idx = file->blockPointers[curBlocks - 1];
+        int index = file->blockPointers[currentBlocks - 1];
         int can = BLOCK_SIZE - off;
         int take = remaining < can ? remaining : can;
-        memcpy(virtualDisk[idx] + off, src, take);
-        src += take;
+        memcpy(virtualDisk[index] + off, source, take);
+        source += take;
         remaining -= take;
     }
 
-    for(int i = curBlocks; remaining > 0 && i < needBlocks; i++)
+    for(int i = currentBlocks; remaining > 0 && i < needBlocks; i++)
     {
-        int idx = file->blockPointers[i];
+        int index = file->blockPointers[i];
         int take = remaining > BLOCK_SIZE ? BLOCK_SIZE : remaining;
-        memcpy(virtualDisk[idx], src, take);
+        memcpy(virtualDisk[index], source, take);
         if(take < BLOCK_SIZE)
         {
-            memset(virtualDisk[idx] + take, 0, BLOCK_SIZE - take);
+            memset(virtualDisk[index] + take, 0, BLOCK_SIZE - take);
         }
-        src += take;
+        source += take;
         remaining -= take;
     }
 
@@ -501,8 +501,8 @@ void mkdirCommand(char *name)
         return;
     }
 
-    FileNode *newDir = createFileNode(name, 1, currentDirectory);
-    insertChild(currentDirectory, newDir);
+    FileNode *newDirectory = createFileNode(name, 1, currentDirectory);
+    insertChild(currentDirectory, newDirectory);
     printf("Directory '%s' created.\n", name);
 }
 
@@ -547,14 +547,14 @@ void cdCommand(char *name)
         return;
     }
 
-    FileNode *targetDir = findChild(currentDirectory, name);
-    if(targetDir == NULL || !targetDir->isDirectory)
+    FileNode *targetDirectory = findChild(currentDirectory, name);
+    if(targetDirectory == NULL || !targetDirectory->isDirectory)
     {
         printf("cd: no such directory: %s\n", name);
         return;
     }
 
-    currentDirectory = targetDir;
+    currentDirectory = targetDirectory;
 }
 
 void createCommand(char *name)
@@ -605,9 +605,9 @@ void readCommand(char *name)
     printf("Contents of file '%s':\n", name);
     int bytesRead = 0;
 
-    for(int i = 0; i < file->dynamicBlocksCount; i++)
+    for(int index = 0; index < file->dynamicBlocksCount; index++)
     {
-        int blockIndex = file->blockPointers[i];
+        int blockIndex = file->blockPointers[index];
         int bytesToRead = (file->fileSize - bytesRead < BLOCK_SIZE) ? (file->fileSize - bytesRead) : BLOCK_SIZE;
         fwrite(virtualDisk[blockIndex], 1, bytesToRead, stdout);
         bytesRead += bytesToRead;
@@ -650,21 +650,21 @@ void rmdirCommand(char *name)
         return;
     }
 
-    FileNode *dir = findChild(currentDirectory, name);
-    if(dir == NULL || !dir->isDirectory)
+    FileNode *directory = findChild(currentDirectory, name);
+    if(directory == NULL || !directory->isDirectory)
     {
         printf("rmdir: no such directory: %s\n", name);
         return;
     }
 
-    if(dir->child != NULL)
+    if(directory->child != NULL)
     {
         printf("rmdir: directory '%s' is not empty\n", name);
         return;
     }
 
-    unlinkChildNode(currentDirectory, dir);
-    free(dir);
+    unlinkChildNode(currentDirectory, directory);
+    free(directory);
     printf("Directory '%s' removed.\n", name);
 }
 
@@ -676,16 +676,16 @@ void pwdCommand()
         return;
     }
 
-    FileNode *temp = currentDirectory;
+    FileNode *temproraryDirectory = currentDirectory;
     char path[MAX_LINE] = "";
 
-    while(temp != NULL && temp != root)
+    while(temproraryDirectory != NULL && temproraryDirectory != root)
     {
-        char tempPath[MAX_LINE];
-        snprintf(tempPath, sizeof(tempPath), "/%s%s", temp->name, path);
-        strncpy(path, tempPath, sizeof(path) - 1);
+        char temproraryPath[MAX_LINE];
+        snprintf(temproraryPath, sizeof(temproraryPath), "/%s%s", temproraryDirectory->name, path);
+        strncpy(path, temproraryPath, sizeof(path) - 1);
         path[sizeof(path) - 1] = '\0';
-        temp = temp->parent;
+        temproraryDirectory = temproraryDirectory->parent;
     }
 
     printf("Current Directory: %s\n", path[0] ? path : "/");
@@ -695,11 +695,13 @@ void dfCommand()
 {
     int freeBlocks = countFreeBlocks();
     int usedBlocks = NUMBER_OF_BLOCKS - freeBlocks;
+    float usagePercent = ((float)usedBlocks / NUMBER_OF_BLOCKS) * 100.0;
 
     printf("Disk Usage:\n");
     printf("Total Blocks: %d\n", NUMBER_OF_BLOCKS);
     printf("Used Blocks: %d\n", usedBlocks);
     printf("Free Blocks: %d\n", freeBlocks);
+    printf("Usage: %.2f%%\n", usagePercent);
 }
 
 void exitCommand()
