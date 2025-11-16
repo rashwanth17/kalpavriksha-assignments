@@ -157,6 +157,28 @@ int FindTeamIndexByID(int requested_team_id)
     return -1;
 }
 
+int IsPlayerIDDuplicate(int candidate_id)
+{
+    if (team_list == NULL)
+    {
+        return 0;
+    }
+
+    for (int team_counter = 0; team_counter < total_teams_internal; team_counter++)
+    {
+        PlayerNode *iterator = team_list[team_counter].players_head;
+        while (iterator != NULL)
+        {
+            if (iterator->player_id == candidate_id)
+            {
+                return 1;
+            }
+            iterator = iterator->next_in_team;
+        }
+    }
+    return 0;
+}
+
 void InsertPlayerIntoTeamList(TeamNode *team_node,PlayerNode *player_node)
 {
     if (team_node->players_head == NULL)
@@ -355,6 +377,12 @@ void AddPlayerToTeam()
     printf("Enter Team ID to add player: ");
     int requested_team_id = ReadIntegerValue();
 
+    if (requested_team_id <= 0)
+    {
+        printf("ERROR: Team ID must be positive\n");
+        return;
+    }
+
     int found_index = FindTeamIndexByID(requested_team_id);
 
     if (found_index == -1)
@@ -375,45 +403,150 @@ void AddPlayerToTeam()
 
     printf("Enter Player Details:\n");
 
-    printf("Player ID: ");
-    new_node->player_id = ReadIntegerValue();
-
-    printf("Name: ");
-    ReadLine(new_node->player_name, sizeof(new_node->player_name));
-    char *trimmed_name = TrimLeadingSpaces(new_node->player_name);
-    if (trimmed_name != new_node->player_name)
+    while (1)
     {
-        memmove(new_node->player_name, trimmed_name, strlen(trimmed_name) + 1);
+        printf("Player ID: ");
+        int candidate_id = ReadIntegerValue();
+
+        if (candidate_id <= 0)
+        {
+            printf("ERROR: Player ID must be positive\n");
+            continue;
+        }
+
+        if (IsPlayerIDDuplicate(candidate_id))
+        {
+            printf("ERROR: Duplicate player id\n");
+            continue;
+        }
+
+        new_node->player_id = candidate_id;
+        break;
     }
 
-    printf("Role (1-Batsman, 2-Bowler, 3-All-rounder): ");
-    int role_number = ReadIntegerValue();
-    int role_index = RoleNumberToIndex(role_number);
-
-    if (role_index < 0)
+    while (1)
     {
-        printf("ERROR: Invalid role selection\n");
-        free(new_node);
-        return;
+        printf("Name: ");
+        ReadLine(new_node->player_name, sizeof(new_node->player_name));
+        char *trimmed_name = TrimLeadingSpaces(new_node->player_name);
+        if (trimmed_name != new_node->player_name)
+        {
+            memmove(new_node->player_name, trimmed_name, strlen(trimmed_name) + 1);
+        }
+        size_t name_length = strlen(new_node->player_name);
+        while (name_length > 0 && isspace((unsigned char)new_node->player_name[name_length - 1]))
+        {
+            new_node->player_name[name_length - 1] = '\0';
+            name_length--;
+        }
+        if (new_node->player_name[0] == '\0')
+        {
+            printf("ERROR: Name cannot be empty\n");
+            continue;
+        }
+        int invalid_character_found = 0;
+        for (size_t char_index = 0; char_index < name_length; char_index++)
+        {
+            unsigned char ch = (unsigned char)new_node->player_name[char_index];
+            if (ch == ' ')
+            {
+                continue;
+            }
+            if (!isalpha(ch))
+            {
+                invalid_character_found = 1;
+                break;
+            }
+        }
+        if (invalid_character_found)
+        {
+            printf("ERROR: Name must contain only alphabets and spaces\n");
+            continue;
+        }
+        break;
     }
 
-    new_node->role_index = role_index;
-    RoleIndexToName(new_node->role_index, new_node->role_name, sizeof(new_node->role_name));
+    while (1)
+    {
+        printf("Role (1-Batsman, 2-Bowler, 3-All-rounder): ");
+        int role_number = ReadIntegerValue();
+        int role_index = RoleNumberToIndex(role_number);
 
-    printf("Total Runs: ");
-    new_node->total_runs = ReadIntegerValue();
+        if (role_index < 0)
+        {
+            printf("ERROR: Invalid role selection\n");
+            continue;
+        }
 
-    printf("Batting Average: ");
-    new_node->batting_average = ReadFloatValue();
+        new_node->role_index = role_index;
+        RoleIndexToName(new_node->role_index, new_node->role_name, sizeof(new_node->role_name));
+        break;
+    }
 
-    printf("Strike Rate: ");
-    new_node->strike_rate = ReadFloatValue();
+    while (1)
+    {
+        printf("Total Runs: ");
+        int value = ReadIntegerValue();
+        if (value < 0)
+        {
+            printf("ERROR: Total Runs cannot be negative\n");
+            continue;
+        }
+        new_node->total_runs = value;
+        break;
+    }
 
-    printf("Wickets: ");
-    new_node->wickets = ReadIntegerValue();
+    while (1)
+    {
+        printf("Batting Average: ");
+        float value = ReadFloatValue();
+        if (value < 0.0f)
+        {
+            printf("ERROR: Batting Average cannot be negative\n");
+            continue;
+        }
+        new_node->batting_average = value;
+        break;
+    }
 
-    printf("Economy Rate: ");
-    new_node->economy_rate = ReadFloatValue();
+    while (1)
+    {
+        printf("Strike Rate: ");
+        float value = ReadFloatValue();
+        if (value < 0.0f)
+        {
+            printf("ERROR: Strike Rate cannot be negative\n");
+            continue;
+        }
+        new_node->strike_rate = value;
+        break;
+    }
+
+    while (1)
+    {
+        printf("Wickets: ");
+        int value = ReadIntegerValue();
+        if (value < 0)
+        {
+            printf("ERROR: Wickets cannot be negative\n");
+            continue;
+        }
+        new_node->wickets = value;
+        break;
+    }
+
+    while (1)
+    {
+        printf("Economy Rate: ");
+        float value = ReadFloatValue();
+        if (value < 0.0f)
+        {
+            printf("ERROR: Economy Rate cannot be negative\n");
+            continue;
+        }
+        new_node->economy_rate = value;
+        break;
+    }
 
     strncpy(new_node->team_name, selected_team->team_name, sizeof(new_node->team_name) - 1);
     new_node->team_name[sizeof(new_node->team_name) - 1] = '\0';
@@ -433,9 +566,14 @@ void AddPlayerToTeam()
 
 void DisplayPlayersOfSpecificTeam()
 {
-    printf("Choice 2 \u2192 Display All Players of a Specific Team\n");
     printf("Enter Team ID: ");
     int requested_team_id = ReadIntegerValue();
+
+    if (requested_team_id <= 0)
+    {
+        printf("ERROR: Team ID must be positive\n");
+        return;
+    }
 
     int found_index = FindTeamIndexByID(requested_team_id);
 
@@ -449,15 +587,15 @@ void DisplayPlayersOfSpecificTeam()
 
     printf("Players of Team %s:\n", selected_team->team_name);
     printf("====================================================================================\n");
-    printf("%-6s %-20s %-12s %-6s %-6s %-6s %-6s %-10s\n",
-           "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER");
+    printf("%-6s %-20s %-12s %-10s %-10s %-10s %-10s %-15s %-25s\n",
+           "ID", "Name", "Role", "Runs", "Avgerage", "Strike Rate", "Wickets", "Economy Rate", "Performance Index");
     printf("====================================================================================\n");
 
     PlayerNode *iterator = selected_team->players_head;
 
     while (iterator != NULL)
     {
-        printf("%-6d %-20s %-12s %-6d %-6.1f %-6.1f %-6d %-10.1f\n",
+        printf("%-6d %-20s %-12s %-6d %-6.1f %-6.1f %-6d %-10.1f %-12.2f\n",
                iterator->player_id,
                iterator->player_name,
                iterator->role_name,
@@ -465,7 +603,8 @@ void DisplayPlayersOfSpecificTeam()
                iterator->batting_average,
                iterator->strike_rate,
                iterator->wickets,
-               iterator->economy_rate);
+               iterator->economy_rate,
+               iterator->performance_index);
         iterator = iterator->next_in_team;
     }
 
@@ -513,7 +652,7 @@ void DisplayTeamsByAverageBattingStrikeRate()
 
     printf("Teams Sorted by Average Batting Strike Rate\n");
     printf("=========================================================\n");
-    printf("%-4s %-18s %-12s %-8s\n", "ID", "Team Name", "Avg Bat SR", "Total Players");
+    printf("%-4s %-18s %-12s %-8s\n", "ID", "Team Name", "Average Strike Rate", "Total Players");
     printf("=========================================================\n");
 
     for (int team_counter = 0; team_counter < total_teams_internal; team_counter++)
@@ -534,9 +673,14 @@ void DisplayTeamsByAverageBattingStrikeRate()
 
 void DisplayTopKPlayersOfTeamByRole()
 {
-    printf("Choice 4 \u2192 Display Top K Players of a Specific Team by Role\n");
     printf("Enter Team ID: ");
     int requested_team_id = ReadIntegerValue();
+
+    if (requested_team_id <= 0)
+    {
+        printf("ERROR: Team ID must be positive\n");
+        return;
+    }
 
     int found_index = FindTeamIndexByID(requested_team_id);
 
@@ -593,15 +737,15 @@ void DisplayTopKPlayersOfTeamByRole()
 
     printf("Top %d %s(s) of Team %s:\n", requested_k, role_name_print, selected_team->team_name);
     printf("====================================================================================\n");
-    printf("%-6s %-20s %-12s %-6s %-6s %-6s %-6s %-10s\n",
-           "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "Perf.Index");
+    printf("%-6s %-20s %-12s %-10s %-10s %-10s %-10s %-15s %-25s\n",
+           "ID", "Name", "Role", "Runs", "Avgerage", "Strike Rate", "Wickets", "Economy Rate", "Performance Index");
     printf("====================================================================================\n");
 
     int printed = 0;
 
     while (role_iterator != NULL && printed < requested_k)
     {
-        printf("%-6d %-20s %-12s %-6d %-6.1f %-6.1f %-6d %-10.2f\n",role_iterator->player_id,role_iterator->player_name,role_iterator->role_name,role_iterator->total_runs,role_iterator->batting_average,role_iterator->strike_rate,role_iterator->wickets,role_iterator->performance_index);
+        printf("%-6d %-20s %-12s %-6d %-6.1f %-6.1f %-6d %-10.1f %-12.2f\n",role_iterator->player_id,role_iterator->player_name,role_iterator->role_name,role_iterator->total_runs,role_iterator->batting_average,role_iterator->strike_rate,role_iterator->wickets,role_iterator->economy_rate,role_iterator->performance_index);
         role_iterator = role_iterator->next_in_role;
         printed++;
     }
@@ -617,13 +761,14 @@ typedef struct HeapNode
     int originating_team_index;
 } HeapNode;
 
-void SwapHeapNodes(HeapNode *a,HeapNode *b)
+void SwapHeapNodes(HeapNode *firstNode, HeapNode *secondNode)
 {
-    HeapNode temp = *a;
-    *a = *b;
-    *b = temp;
+    HeapNode temporaryNode = *firstNode;
+    *firstNode = *secondNode;
+    *secondNode = temporaryNode;
     return;
 }
+
 
 void PushHeap(HeapNode heap_array[],int *heap_size_pointer,HeapNode new_element)
 {
@@ -689,7 +834,6 @@ HeapNode PopHeap(HeapNode heap_array[],int *heap_size_pointer)
 
 void DisplayAllPlayersAcrossTeamsByRole()
 {
-    printf("Choice 5 \u2192 Display All Players Across All Teams of specific role\n");
     printf("Enter Role (1-Batsman, 2-Bowler, 3-All-rounder): ");
     int role_number = ReadIntegerValue();
     int role_index = RoleNumberToIndex(role_number);
@@ -748,14 +892,15 @@ void DisplayAllPlayersAcrossTeamsByRole()
 
     printf("\n%s of all teams:\n", role_name_print);
     printf("======================================================================================\n");
-    printf("%-6s %-20s %-16s %-16s %-6s %-6s %-6s %-10s\n","ID", "Name", "Team", "Role", "Runs", "Avg", "SR", "Perf.Index");
+    printf("%-6s %-20s %-16s %-16s %-6s %-6s %-6s %-10s %-12s\n",
+           "ID", "Name", "Team", "Role", "Runs", "Avg", "SR", "Perf.Index", "ER");
     printf("======================================================================================\n");
 
     while (heap_size > 0)
     {
         HeapNode top = PopHeap(heap_array, &heap_size);
         PlayerNode *node = top.player_node;
-        printf("%-6d %-20s %-16s %-16s %-6d %-6.1f %-6.1f %-10.2f\n",node->player_id,node->player_name,node->team_name,node->role_name,node->total_runs,node->batting_average,node->strike_rate,node->performance_index);
+        printf("%-6d %-20s %-16s %-16s %-6d %-6.1f %-6.1f %-10.2f %-12.1f\n",node->player_id,node->player_name,node->team_name,node->role_name,node->total_runs,node->batting_average,node->strike_rate,node->performance_index,node->economy_rate);
 
         PlayerNode *next_in_that_team = node->next_in_role;
 
@@ -805,6 +950,7 @@ int main()
 {
     printf("==============================================================================\n");
     printf("ICC ODI Player Performance Analyzer\n");
+    printf("==============================================================================\n");
     InitializeSystemFromHeader();
 
     while (1)
