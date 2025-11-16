@@ -50,18 +50,92 @@ void ReadLine(char *buffer,int buffer_size)
     return;
 }
 
+void TrimSpacesInPlace(char *text)
+{
+    char *start = text;
+    char *end = NULL;
+    while (*start != '\0' && isspace((unsigned char)*start))
+    {
+        start++;
+    }
+    if (*start == '\0')
+    {
+        text[0] = '\0';
+        return;
+    }
+    end = start + strlen(start) - 1;
+    while (end > start && isspace((unsigned char)*end))
+    {
+        end--;
+    }
+    end[1] = '\0';
+    if (start != text)
+    {
+        memmove(text, start, strlen(start) + 1);
+    }
+    return;
+}
+
 int ReadIntegerValue()
 {
     char input_buffer[128];
-    ReadLine(input_buffer, sizeof(input_buffer));
-    return atoi(input_buffer);
+    char *endptr = NULL;
+    long parsed_value = 0;
+
+    while (1)
+    {
+        ReadLine(input_buffer, sizeof(input_buffer));
+        TrimSpacesInPlace(input_buffer);
+
+        if (input_buffer[0] == '\0')
+        {
+            printf("ERROR: Invalid integer input\n");
+            printf("Please enter a valid integer: ");
+            continue;
+        }
+
+        parsed_value = strtol(input_buffer, &endptr, 10);
+
+        if (*endptr != '\0')
+        {
+            printf("ERROR: Invalid integer input\n");
+            printf("Please enter a valid integer: ");
+            continue;
+        }
+
+        return (int)parsed_value;
+    }
 }
 
 float ReadFloatValue()
 {
     char input_buffer[128];
-    ReadLine(input_buffer, sizeof(input_buffer));
-    return (float)atof(input_buffer);
+    char *endptr = NULL;
+    double parsed_value = 0.0;
+
+    while (1)
+    {
+        ReadLine(input_buffer, sizeof(input_buffer));
+        TrimSpacesInPlace(input_buffer);
+
+        if (input_buffer[0] == '\0')
+        {
+            printf("ERROR: Invalid float input\n");
+            printf("Please enter a valid number: ");
+            continue;
+        }
+
+        parsed_value = strtod(input_buffer, &endptr);
+
+        if (*endptr != '\0')
+        {
+            printf("ERROR: Invalid float input\n");
+            printf("Please enter a valid number: ");
+            continue;
+        }
+
+        return (float)parsed_value;
+    }
 }
 
 char *TrimLeadingSpaces(char *text)
