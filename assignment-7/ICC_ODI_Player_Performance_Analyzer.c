@@ -660,29 +660,28 @@ void DisplayPlayersOfSpecificTeam()
     TeamNode *selected_team = &team_list[found_index];
 
     printf("Players of Team %s:\n", selected_team->team_name);
-    printf("====================================================================================\n");
-    printf("%-6s %-20s %-12s %-10s %-10s %-10s %-10s %-15s %-25s\n",
-           "ID", "Name", "Role", "Runs", "Avgerage", "Strike Rate", "Wickets", "Economy Rate", "Performance Index");
-    printf("====================================================================================\n");
+    printf("========================================================================================================================\n");
+    printf("%-6s %-20s %-14s %-8s %-10s %-12s %-10s %-13s %-17s\n","ID", "Name", "Role", "Runs", "Average", "Strike Rate","Wickets", "Economy", "Performance Index");
+    printf("========================================================================================================================\n");
 
     PlayerNode *iterator = selected_team->players_head;
 
     while (iterator != NULL)
     {
-        printf("%-6d %-20s %-12s %-6d %-6.1f %-6.1f %-6d %-10.1f %-12.2f\n",
-               iterator->player_id,
-               iterator->player_name,
-               iterator->role_name,
-               iterator->total_runs,
-               iterator->batting_average,
-               iterator->strike_rate,
-               iterator->wickets,
-               iterator->economy_rate,
-               iterator->performance_index);
+        printf("%-6d %-22s %-14s %-8d %-10.1f %-12.1f %-10d %-13.1f %-17.2f\n",
+        iterator->player_id,
+        iterator->player_name,
+        iterator->role_name,
+        iterator->total_runs,
+        iterator->batting_average,
+        iterator->strike_rate,
+        iterator->wickets,
+        iterator->economy_rate,
+        iterator->performance_index);
         iterator = iterator->next_in_team;
     }
 
-    printf("====================================================================================\n");
+    printf("========================================================================================================================\n");
     printf("Total Players: %d\n", selected_team->total_players);
     printf("Average Batting Strike Rate: %.2f\n\n", selected_team->average_batting_strike_rate);
 
@@ -725,20 +724,20 @@ void DisplayTeamsByAverageBattingStrikeRate()
     qsort(sorting_array, total_teams_internal, sizeof(TeamNode), CompareTeamsByAverageStrikeRateDesc);
 
     printf("Teams Sorted by Average Batting Strike Rate\n");
-    printf("=========================================================\n");
-    printf("%-4s %-18s %-12s %-8s\n", "ID", "Team Name", "Average Strike Rate", "Total Players");
-    printf("=========================================================\n");
-
+    printf("========================================================================================================================\n");
+    printf("%-6s %-20s %-22s %-15s\n","ID", "Team Name", "Average Strike Rate", "Total Players");
+    printf("========================================================================================================================\n");
     for (int team_counter = 0; team_counter < total_teams_internal; team_counter++)
     {
-        printf("%-4d %-18s %-12.1f %-8d\n",
-               sorting_array[team_counter].team_id,
-               sorting_array[team_counter].team_name,
-               sorting_array[team_counter].average_batting_strike_rate,
-               sorting_array[team_counter].total_players);
+       printf("%-6d %-20s %-22.2f %-15d\n",
+       sorting_array[team_counter].team_id,
+       sorting_array[team_counter].team_name,
+       sorting_array[team_counter].average_batting_strike_rate,
+       sorting_array[team_counter].total_players);
+
     }
 
-    printf("=========================================================\n\n");
+    printf("========================================================================================================================\n");
 
     free(sorting_array);
 
@@ -810,21 +809,20 @@ void DisplayTopKPlayersOfTeamByRole()
     RoleIndexToName(role_index, role_name_print, sizeof(role_name_print));
 
     printf("Top %d %s(s) of Team %s:\n", requested_k, role_name_print, selected_team->team_name);
-    printf("====================================================================================\n");
-    printf("%-6s %-20s %-12s %-10s %-10s %-10s %-10s %-15s %-25s\n",
-           "ID", "Name", "Role", "Runs", "Avgerage", "Strike Rate", "Wickets", "Economy Rate", "Performance Index");
-    printf("====================================================================================\n");
+    printf("========================================================================================================================\n");
+    printf("%-6s %-22s %-14s %-8s %-10s %-12s %-10s %-13s %-17s\n","ID", "Name", "Role", "Runs", "Avgerage", "Strike Rate", "Wickets", "Economy Rate", "Performance Index");
+    printf("========================================================================================================================\n");
 
     int printed = 0;
 
     while (role_iterator != NULL && printed < requested_k)
     {
-        printf("%-6d %-20s %-12s %-6d %-6.1f %-6.1f %-6d %-10.1f %-12.2f\n",role_iterator->player_id,role_iterator->player_name,role_iterator->role_name,role_iterator->total_runs,role_iterator->batting_average,role_iterator->strike_rate,role_iterator->wickets,role_iterator->economy_rate,role_iterator->performance_index);
+        printf("%-6d %-22s %-14s %-8d %-10.1f %-12.1f %-10d %-13.1f %-17.2f\n",role_iterator->player_id,role_iterator->player_name,role_iterator->role_name,role_iterator->total_runs,role_iterator->batting_average,role_iterator->strike_rate,role_iterator->wickets,role_iterator->economy_rate,role_iterator->performance_index);
         role_iterator = role_iterator->next_in_role;
         printed++;
     }
 
-    printf("====================================================================================\n\n");
+   printf("========================================================================================================================\n");
 
     return;
 }
@@ -965,16 +963,24 @@ void DisplayAllPlayersAcrossTeamsByRole()
     RoleIndexToName(role_index, role_name_print, sizeof(role_name_print));
 
     printf("\n%s of all teams:\n", role_name_print);
-    printf("======================================================================================\n");
-    printf("%-6s %-20s %-16s %-16s %-6s %-6s %-6s %-10s %-12s\n",
-           "ID", "Name", "Team", "Role", "Runs", "Avg", "SR", "Perf.Index", "ER");
-    printf("======================================================================================\n");
-
+    printf("========================================================================================================================\n");
+    printf("%-6s %-22s %-14s %-8s %-10s %-12s %-10s %-13s %-17s\n","ID", "Name", "Role", "Runs", "Average", "Strike Rate","Wickets", "Economy", "Performance Index");
+    printf("========================================================================================================================\n");
     while (heap_size > 0)
     {
         HeapNode top = PopHeap(heap_array, &heap_size);
         PlayerNode *node = top.player_node;
-        printf("%-6d %-20s %-16s %-16s %-6d %-6.1f %-6.1f %-10.2f %-12.1f\n",node->player_id,node->player_name,node->team_name,node->role_name,node->total_runs,node->batting_average,node->strike_rate,node->performance_index,node->economy_rate);
+        printf("%-6d %-22s %-16s %-14s %-8d %-10.1f %-12.1f %-10d %-13.1f %-17.2f\n",
+       node->player_id,
+       node->player_name,
+       node->team_name,
+       node->role_name,
+       node->total_runs,
+       node->batting_average,
+       node->strike_rate,
+       node->wickets,
+       node->economy_rate,
+       node->performance_index);
 
         PlayerNode *next_in_that_team = node->next_in_role;
 
@@ -987,7 +993,7 @@ void DisplayAllPlayersAcrossTeamsByRole()
         }
     }
 
-    printf("======================================================================================\n\n");
+    printf("========================================================================================================================\n");
 
     free(heap_array);
 
