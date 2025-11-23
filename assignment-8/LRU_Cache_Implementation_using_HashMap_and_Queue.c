@@ -2,31 +2,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 
-typedef struct Node 
+#define HASH_MAP_SIZE 1009
+#define MAX_KEY_LENGTH 20
+#define MAX_VALUE_LENGTH 100
+#define MAX_CAPACITY 1000
+#define MIN_CAPACITY 1
+
+typedef struct CacheNode 
 {
     int key;
     char* value;
-    struct Node* prev;
-    struct Node* next;
-} Node;
+    struct CacheNode* previousNode;
+    struct CacheNode* nextNode;
+} CacheNode;
 
 typedef struct 
 {
-    Node* head;
-    Node* tail;
-    Node** hashMap;
+    CacheNode* head;
+    CacheNode* tail;
+    CacheNode** hashMap;
     int capacity;
     int size;
 } LRUCache;
 
-static Node* createNode(int key, const char* value)
+static CacheNode* createNode(int key, const char* value)
 {
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    if (!newNode)
-    {
-        return NULL;
-    }
+    CacheNode* newNode = (CacheNode*)malloc(sizeof(CacheNode));
+    if (!newNode) return NULL;
     
     newNode->key = key;
     newNode->value = strdup(value);
@@ -35,42 +39,42 @@ static Node* createNode(int key, const char* value)
         free(newNode);
         return NULL;
     }
-    newNode->prev = NULL;
-    newNode->next = NULL;
+    newNode->previousNode = NULL;
+    newNode->nextNode = NULL;
     return newNode;
 }
 
-static void removeNode(LRUCache* cache, Node* node) 
+static void removeNode(LRUCache* cache, CacheNode* node) 
 {
-    if (node->prev) 
+    if (node->previousNode) 
     {
-        node->prev->next = node->next;
+        node->previousNode->nextNode = node->nextNode;
     } 
     else 
     {
-        cache->head = node->next;
+        cache->head = node->nextNode;
     }
     
-    if (node->next) 
+    if (node->nextNode) 
     {
-        node->next->prev = node->prev;
+        node->nextNode->previousNode = node->previousNode;
     } 
     else 
     {
-        cache->tail = node->prev;
+        cache->tail = node->previousNode;
     }
     
     cache->size--;
 }
 
-static void addToFront(LRUCache* cache, Node* node) 
+static void addToFront(LRUCache* cache, CacheNode* node) 
 {
-    node->next = cache->head;
-    node->prev = NULL;
+    node->nextNode = cache->head;
+    node->previousNode = NULL;
     
     if (cache->head) 
     {
-        cache->head->prev = node;
+        cache->head->previousNode = node;
     }
     cache->head = node;
     
@@ -82,12 +86,9 @@ static void addToFront(LRUCache* cache, Node* node)
     cache->size++;
 }
 
-static void moveToFront(LRUCache* cache, Node* node) 
+static void moveToFront(LRUCache* cache, CacheNode* node) 
 {
-    if (cache->head == node)
-    {
-        return;
-    }
+    if (cache->head == node) return;
     
     removeNode(cache, node);
     addToFront(cache, node);
@@ -95,20 +96,15 @@ static void moveToFront(LRUCache* cache, Node* node)
 
 LRUCache* createCache(int capacity) 
 {
-    if (capacity <= 0) 
+    if (capacity < MIN_CAPACITY || capacity > MAX_CAPACITY) 
     {
-        fprintf(stderr, "Error: Capacity must be a positive integer\n");
         return NULL;
     }
 
     LRUCache* cache = (LRUCache*)malloc(sizeof(LRUCache));
-    if (!cache)
-    {
-        return NULL;
-    }
+    if (!cache) return NULL;
     
-    int hashSize = 1009;
-    cache->hashMap = (Node**)calloc(hashSize, sizeof(Node*));
+    cache->hashMap = (CacheNode**)calloc(HASH_MAP_SIZE, sizeof(CacheNode*));
     if (!cache->hashMap) 
     {
         free(cache);
@@ -123,116 +119,118 @@ LRUCache* createCache(int capacity)
     return cache;
 }
 
-char* get(LRUCache* cache, int key) {
-    if (!cache || key < 0)
-    {
-        return NULL;
-    } 
+char* get(LRUCache* cache, int key) 
+{
+    if (!cache || key < 0) return NULL;
     
-    int hashIndex = key % 1009;
-    Node* node = cache->hashMap[hashIndex];
+    int hashIndex = key % HASH_MAP_SIZE;
+    CacheNode* currentNode = cache->hashMap[hashIndex];
     
-    while (node) 
+    while (currentNode) 
     {
-        if (node->key == key) 
+        if (currentNode->key == key) 
         {
-            moveToFront(cache, node);
-            return node->value;
+            moveToFront(cache, currentNode);
+            return currentNode->value;
         }
-        node = node->next;
+        currentNode = currentNode->nextNode;
     }
     
     return NULL;
 }
 
-void put(LRUCache* cache, int key, const char* value) {
-    if (!cache || key < 0 || !value)
-    {
-        return;
-    } 
+void put(LRUCache* cache, int key, const char* value) 
+{
+    if (!cache || key < 0 || !value) return;
     
-    int hashIndex = key % 1009;
-    Node* node = cache->hashMap[hashIndex];
-    Node* prev = NULL;
+    int hashIndex = key % HASH_MAP_SIZE;
+    CacheNode* currentNode = cache->hashMap[hashIndex];
+    CacheNode* previousNode = NULL;
     
-    while (node) 
+    while (currentNode) 
     {
-        if (node->key == key) 
+        if (currentNode->key == key) 
         {
-            free(node->value);
-            node->value = strdup(value);
-            moveToFront(cache, node);
+            free(currentNode->value);
+            currentNode->value = strdup(value);
+            moveToFront(cache, currentNode);
             return;
         }
-        prev = node;
-        node = node->next;
+        previousNode = currentNode;
+        currentNode = currentNode->nextNode;
     }
     
-    node = createNode(key, value);
-    if (!node) 
-    {
-        return;
-    }
+    CacheNode* newNode = createNode(key, value);
+    if (!newNode) return;
     
     if (cache->size >= cache->capacity) 
     {
-        Node* lru = cache->tail;
-        if (lru) 
+        CacheNode* lruNode = cache->tail;
+        if (lruNode) 
         {
-            int lruHashIndex = lru->key % 1009;
-            Node* curr = cache->hashMap[lruHashIndex];
-            Node* prev = NULL;
+            int lruHashIndex = lruNode->key % HASH_MAP_SIZE;
+            CacheNode* current = cache->hashMap[lruHashIndex];
+            CacheNode* prev = NULL;
             
-            while (curr)
+            while (current)
             {
-                if (curr == lru)
+                if (current == lruNode)
                 {
                     if (prev)
                     {
-                        prev->next = curr->next;
+                        prev->nextNode = current->nextNode;
                     } 
                     else 
                     {
-                        cache->hashMap[lruHashIndex] = curr->next;
+                        cache->hashMap[lruHashIndex] = current->nextNode;
                     }
                     break;
                 }
-                prev = curr;
-                curr = curr->next;
+                prev = current;
+                current = current->nextNode;
             }
             
-            removeNode(cache, lru);
-            free(lru->value);
-            free(lru);
+            removeNode(cache, lruNode);
+            free(lruNode->value);
+            free(lruNode);
         }
     }
     
-    node->next = cache->hashMap[hashIndex];
-    cache->hashMap[hashIndex] = node;
+    newNode->nextNode = cache->hashMap[hashIndex];
+    cache->hashMap[hashIndex] = newNode;
     
-    addToFront(cache, node);
+    addToFront(cache, newNode);
 }
 
-void freeCache(LRUCache* cache) {
-    if (!cache)
-    {
-        return;
-    } 
+void freeCache(LRUCache* cache) 
+{
+    if (!cache) return;
     
-    Node* curr = cache->head;
-    while (curr) 
+    CacheNode* currentNode = cache->head;
+    while (currentNode) 
     {
-        Node* next = curr->next;
-        free(curr->value);
-        free(curr);
-        curr = next;
+        CacheNode* nextNode = currentNode->nextNode;
+        free(currentNode->value);
+        free(currentNode);
+        currentNode = nextNode;
     }
     
     free(cache->hashMap);
     free(cache);
 }
 
-int main() {
+bool isNumber(const char* str) 
+{
+    if (!str || *str == '\0') return false;
+    for (int i = 0; str[i] != '\0'; i++) 
+    {
+        if (!isdigit(str[i])) return false;
+    }
+    return true;
+}
+
+int main() 
+{
     printf("LRU Cache Implementation\n");
     printf("Available commands:\n");
     printf("1. createCache <capacity>\n");
@@ -241,31 +239,55 @@ int main() {
     printf("4. exit\n\n");
     
     LRUCache* cache = NULL;
+    char inputBuffer[256];
     char command[20];
+    char keyStr[MAX_KEY_LENGTH];
+    char value[MAX_VALUE_LENGTH];
     int key, capacity;
-    char value[100];
     
     while (1) 
     {
         printf("Command> ");
-        if (scanf("%s", command) != 1) 
+        if (fgets(inputBuffer, sizeof(inputBuffer), stdin) == NULL) 
         {
-            printf("Error reading command\n");
-            while (getchar() != '\n'); 
+            printf("Error reading input\n");
             continue;
         }
+        
+        inputBuffer[strcspn(inputBuffer, "\n")] = '\0';
+        
+        if (sscanf(inputBuffer, "%19s", command) != 1) 
+        {
+            printf("Invalid command\n");
+            continue;
+        }
+        
         if (strcmp(command, "createCache") == 0) 
         {
-            if (scanf("%d", &capacity) != 1)
+            if (sscanf(inputBuffer + strlen(command), "%19s", keyStr) != 1) 
             {
-                printf("Error: Invalid capacity\n");
-                while (getchar() != '\n'); 
+                printf("Error: Missing capacity\n");
                 continue;
             }
+            
+            if (!isNumber(keyStr)) 
+            {
+                printf("Error: Capacity must be a positive number\n");
+                continue;
+            }
+            
+            capacity = atoi(keyStr);
+            if (capacity < MIN_CAPACITY || capacity > MAX_CAPACITY) 
+            {
+                printf("Error: Capacity must be between %d and %d\n", MIN_CAPACITY, MAX_CAPACITY);
+                continue;
+            }
+            
             if (cache) 
             {
                 freeCache(cache);
             }
+            
             cache = createCache(capacity);
             if (cache) 
             {
@@ -278,13 +300,26 @@ int main() {
         }
         else if (strcmp(command, "put") == 0) 
         {
-            if (scanf("%d %s", &key, value) != 2)
+            if (sscanf(inputBuffer + strlen(command), "%19s %99[^\n]", keyStr, value) != 2) 
             {
                 printf("Error: Invalid arguments for put command\n");
-                while (getchar() != '\n');
                 continue;
             }
-            if (cache)
+            
+            if (!isNumber(keyStr)) 
+            {
+                printf("Error: Key must be a number\n");
+                continue;
+            }
+            
+            key = atoi(keyStr);
+            if (key < 0) 
+            {
+                printf("Error: Key must be non-negative\n");
+                continue;
+            }
+            
+            if (cache) 
             {
                 put(cache, key, value);
                 printf("Inserted\n");
@@ -296,13 +331,26 @@ int main() {
         }
         else if (strcmp(command, "get") == 0) 
         {
-            if (scanf("%d", &key) != 1)
+            if (sscanf(inputBuffer + strlen(command), "%19s", keyStr) != 1) 
             {
-                printf("Error: Invalid key\n");
-                while (getchar() != '\n'); 
+                printf("Error: Missing key\n");
                 continue;
             }
-            if (cache)
+            
+            if (!isNumber(keyStr)) 
+            {
+                printf("Error: Key must be a number\n");
+                continue;
+            }
+            
+            key = atoi(keyStr);
+            if (key < 0) 
+            {
+                printf("Error: Key must be non-negative\n");
+                continue;
+            }
+            
+            if (cache) 
             {
                 char* result = get(cache, key);
                 printf("%s\n", result ? result : "NULL");
@@ -319,7 +367,6 @@ int main() {
         else 
         {
             printf("Invalid command\n");
-            while (getchar() != '\n'); 
         }
     }
     
