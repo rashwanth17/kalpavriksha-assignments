@@ -5,68 +5,68 @@
 #include <string.h>
 #include <netinet/in.h>
 
-pthread_mutex_t lock;
+pthread_mutex_t mutexLock;
 
 void *handleClient(void *arg)
 {
-    int sock = *(int *)arg;
-    int choice, amount;
-    FILE *fp;
+    int clientSocket = *(int *)arg;
+    int operationChoice, accountBalance;
+    FILE *filePointer;
 
-    pthread_mutex_lock(&lock);
-    fp = fopen("accountDB.txt", "r");
-    fscanf(fp, "%d", &amount);
-    fclose(fp);
-    pthread_mutex_unlock(&lock);
+    pthread_mutex_lock(&mutexLock);
+    filePointer = fopen("accountDB.txt", "r");
+    fscanf(filePointer, "%d", &accountBalance);
+    fclose(filePointer);
+    pthread_mutex_unlock(&mutexLock);
 
-    read(sock, &choice, sizeof(choice));
+    read(clientSocket, &operationChoice, sizeof(operationChoice));
 
-    pthread_mutex_lock(&lock);
-    fp = fopen("accountDB.txt", "r");
-    fscanf(fp, "%d", &amount);
-    fclose(fp);
+    pthread_mutex_lock(&mutexLock);
+    filePointer = fopen("accountDB.txt", "r");
+    fscanf(filePointer, "%d", &accountBalance);
+    fclose(filePointer);
 
-    int result = amount;
+    int updatedBalance = accountBalance;
 
-    if (choice == 1)
+    if (operationChoice == 1)
     {
-        int w;
-        read(sock, &w, sizeof(w));
-        if (w <= amount)
-            result = amount - w;
+        int withdrawAmount;
+        read(clientSocket, &withdrawAmount, sizeof(withdrawAmount));
+        if (withdrawAmount <= accountBalance)
+            updatedBalance = accountBalance - withdrawAmount;
     }
-    else if (choice == 2)
+    else if (operationChoice == 2)
     {
-        int d;
-        read(sock, &d, sizeof(d));
-        result = amount + d;
+        int depositAmount;
+        read(clientSocket, &depositAmount, sizeof(depositAmount));
+        updatedBalance = accountBalance + depositAmount;
     }
 
-    fp = fopen("accountDB.txt", "w");
-    fprintf(fp, "%d", result);
-    fclose(fp);
-    pthread_mutex_unlock(&lock);
+    filePointer = fopen("accountDB.txt", "w");
+    fprintf(filePointer, "%d", updatedBalance);
+    fclose(filePointer);
+    pthread_mutex_unlock(&mutexLock);
 
-    write(sock, &result, sizeof(result));
-    close(sock);
+    write(clientSocket, &updatedBalance, sizeof(updatedBalance));
+    close(clientSocket);
     return NULL;
 }
 
 int main()
 {
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in addr = {AF_INET, htons(8080), INADDR_ANY};
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in serverAddress = {AF_INET, htons(8080), INADDR_ANY};
 
-    bind(server_fd, (struct sockaddr *)&addr, sizeof(addr));
-    listen(server_fd, 5);
+    bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+    listen(serverSocket, 5);
 
-    pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&mutexLock, NULL);
 
     while (1)
     {
-        int client = accept(server_fd, NULL, NULL);
-        pthread_t t;
-        pthread_create(&t, NULL, handleClient, &client);
-        pthread_detach(t);
+        int clientSocket = accept(serverSocket, NULL, NULL);
+        pthread_t clientThread;
+        pthread_create(&clientThread, NULL, handleClient, &clientSocket);
+        pthread_detach(clientThread);
     }
 }

@@ -3,44 +3,44 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
-void sort(int arr[], int n)
+void sort(int numbers[], int size)
 {
-    for (int i = 0; i < n - 1; i++)
-        for (int j = i + 1; j < n; j++)
-            if (arr[i] > arr[j])
+    for (int outerIndex = 0; outerIndex < size - 1; outerIndex++)
+        for (int innerIndex = outerIndex + 1; innerIndex < size; innerIndex++)
+            if (numbers[outerIndex] > numbers[innerIndex])
             {
-                int t = arr[i];
-                arr[i] = arr[j];
-                arr[j] = t;
+                int temp = numbers[outerIndex];
+                numbers[outerIndex] = numbers[innerIndex];
+                numbers[innerIndex] = temp;
             }
 }
 
 int main()
 {
-    int fd[2];
-    pipe(fd);
+    int pipeFd[2];
+    pipe(pipeFd);
 
-    int arr[5] = {9, 7, 5, 3, 1};
+    int numbers[5] = {9, 7, 5, 3, 1};
 
     printf("Before Sorting: ");
-    for (int i = 0; i < 5; i++)
-        printf("%d ", arr[i]);
+    for (int index = 0; index < 5; index++)
+        printf("%d ", numbers[index]);
     printf("\n");
 
     if (fork() == 0)
     {
-        read(fd[0], arr, sizeof(arr));
-        sort(arr, 5);
-        write(fd[1], arr, sizeof(arr));
+        read(pipeFd[0], numbers, sizeof(numbers));
+        sort(numbers, 5);
+        write(pipeFd[1], numbers, sizeof(numbers));
         exit(0);
     }
-    write(fd[1], arr, sizeof(arr));
+    write(pipeFd[1], numbers, sizeof(numbers));
     wait(NULL);
-    read(fd[0], arr, sizeof(arr));
+    read(pipeFd[0], numbers, sizeof(numbers));
 
     printf("After Sorting: ");
-    for (int i = 0; i < 5; i++)
-        printf("%d ", arr[i]);
+    for (int index = 0; index < 5; index++)
+        printf("%d ", numbers[index]);
     printf("\n");
 
     return 0;

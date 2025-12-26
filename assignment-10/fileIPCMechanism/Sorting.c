@@ -3,58 +3,58 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void sort(int arr[], int n)
+void sort(int numbers[], int count)
 {
-    for (int i = 0; i < n - 1; i++)
-        for (int j = i + 1; j < n; j++)
-            if (arr[i] > arr[j])
+    for (int index1 = 0; index1 < count - 1; index1++)
+        for (int index2 = index1 + 1; index2 < count; index2++)
+            if (numbers[index1] > numbers[index2])
             {
-                int t = arr[i];
-                arr[i] = arr[j];
-                arr[j] = t;
+                int temp = numbers[index1];
+                numbers[index1] = numbers[index2];
+                numbers[index2] = temp;
             }
 }
 
 int main()
 {
-    int arr[5] = {5, 3, 1, 4, 2};
-    FILE *fp;
+    int numbers[5] = {5, 3, 1, 4, 2};
+    FILE *file;
 
     printf("Before Sorting: ");
-    for (int i = 0; i < 5; i++)
-        printf("%d ", arr[i]);
+    for (int index = 0; index < 5; index++)
+        printf("%d ", numbers[index]);
     printf("\n");
 
-    fp = fopen("data.txt", "w");
-    for (int i = 0; i < 5; i++)
-        fprintf(fp, "%d ", arr[i]);
-    fclose(fp);
+    file = fopen("data.txt", "w");
+    for (int index = 0; index < 5; index++)
+        fprintf(file, "%d ", numbers[index]);
+    fclose(file);
 
     if (fork() == 0)
     {
-        fp = fopen("data.txt", "r");
-        for (int i = 0; i < 5; i++)
-            fscanf(fp, "%d", &arr[i]);
-        fclose(fp);
+        file = fopen("data.txt", "r");
+        for (int index = 0; index < 5; index++)
+            fscanf(file, "%d", &numbers[index]);
+        fclose(file);
 
-        sort(arr, 5);
+        sort(numbers, 5);
 
-        fp = fopen("data.txt", "w");
-        for (int i = 0; i < 5; i++)
-            fprintf(fp, "%d ", arr[i]);
-        fclose(fp);
+        file = fopen("data.txt", "w");
+        for (int index = 0; index < 5; index++)
+            fprintf(file, "%d ", numbers[index]);
+        fclose(file);
         exit(0);
     }
     wait(NULL);
 
-    fp = fopen("data.txt", "r");
-    for (int i = 0; i < 5; i++)
-        fscanf(fp, "%d", &arr[i]);
-    fclose(fp);
+    file = fopen("data.txt", "r");
+    for (int index = 0; index < 5; index++)
+        fscanf(file, "%d", &numbers[index]);
+    fclose(file);
 
     printf("After Sorting: ");
-    for (int i = 0; i < 5; i++)
-        printf("%d ", arr[i]);
+    for (int index = 0; index < 5; index++)
+        printf("%d ", numbers[index]);
     printf("\n");
 
     return 0;

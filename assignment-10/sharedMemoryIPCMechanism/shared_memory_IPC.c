@@ -4,46 +4,46 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-void sort(int *arr)
+void sort(int *numbers)
 {
-    for (int i = 0; i < 4; i++)
-        for (int j = i + 1; j < 5; j++)
-            if (arr[i] > arr[j])
+    for (int outerIndex = 0; outerIndex < 4; outerIndex++)
+        for (int innerIndex = outerIndex + 1; innerIndex < 5; innerIndex++)
+            if (numbers[outerIndex] > numbers[innerIndex])
             {
-                int t = arr[i];
-                arr[i] = arr[j];
-                arr[j] = t;
+                int temp = numbers[outerIndex];
+                numbers[outerIndex] = numbers[innerIndex];
+                numbers[innerIndex] = temp;
             }
 }
 
 int main()
 {
-    int shmid = shmget(IPC_PRIVATE, 5 * sizeof(int), 0666 | IPC_CREAT);
-    int *arr = (int *)shmat(shmid, NULL, 0);
+    int sharedMemoryId = shmget(IPC_PRIVATE, 5 * sizeof(int), 0666 | IPC_CREAT);
+    int *sharedArray = (int *)shmat(sharedMemoryId, NULL, 0);
 
-    int data[5] = {10, 9, 8, 7, 6};
+    int inputData[5] = {10, 9, 8, 7, 6};
 
     printf("Before Sorting: ");
-    for (int i = 0; i < 5; i++)
+    for (int index = 0; index < 5; index++)
     {
-        arr[i] = data[i];
-        printf("%d ", arr[i]);
+        sharedArray[index] = inputData[index];
+        printf("%d ", sharedArray[index]);
     }
     printf("\n");
 
     if (fork() == 0)
     {
-        sort(arr);
+        sort(sharedArray);
         exit(0);
     }
     wait(NULL);
 
     printf("After Sorting: ");
-    for (int i = 0; i < 5; i++)
-        printf("%d ", arr[i]);
+    for (int index = 0; index < 5; index++)
+        printf("%d ", sharedArray[index]);
     printf("\n");
 
-    shmdt(arr);
-    shmctl(shmid, IPC_RMID, NULL);
+    shmdt(sharedArray);
+    shmctl(sharedMemoryId, IPC_RMID, NULL);
     return 0;
 }
