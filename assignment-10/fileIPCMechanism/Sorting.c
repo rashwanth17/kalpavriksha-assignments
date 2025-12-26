@@ -9,9 +9,9 @@ void sort(int numbers[], int count)
         for (int index2 = index1 + 1; index2 < count; index2++)
             if (numbers[index1] > numbers[index2])
             {
-                int temp = numbers[index1];
+                int swapValue= numbers[index1];
                 numbers[index1] = numbers[index2];
-                numbers[index2] = temp;
+                numbers[index2] = swapValue;
             }
 }
 
